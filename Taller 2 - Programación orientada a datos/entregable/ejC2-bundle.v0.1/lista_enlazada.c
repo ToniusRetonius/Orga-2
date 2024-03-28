@@ -42,6 +42,9 @@ uint32_t longitud(lista_t* lista) {
 }
 
 void agregar_al_final(lista_t* lista, uint32_t* arreglo, uint64_t longitud) {
+    /* tengo que armarme una lista de tamaño + 1 */
+    /* recorrerla y almacenar en la última posición el nodo */
+    
     
 }
 
