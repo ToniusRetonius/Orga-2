@@ -38,6 +38,8 @@ void agregar_al_final(lista_t* lista, uint32_t* arreglo, uint64_t longitud) {
     /* 1_ creo el nodo */
     // [
     nodo_t* nuevo = malloc(sizeof(nodo_t));
+
+    
     nuevo->arreglo = arreglo;
     nuevo->longitud = longitud;
     nuevo->next = NULL; 
@@ -62,7 +64,7 @@ nodo_t* iesimo(lista_t* lista, uint32_t i) {
     uint32_t j = 0;
 
     // salvamos el caso en que nos pasen un i que no esté en rango
-    if (i >= longitud(lista) || i < 0)
+    if (i >= longitud(lista))
     {
         return NULL;
     }
@@ -93,7 +95,7 @@ void imprimir_lista(lista_t* lista) {
 
     while (actual != NULL)
     {   
-        printf("| %d | -> ", actual->longitud);
+        printf("| %llu | -> ", actual->longitud);
         actual = actual->next;
     }
     printf("null\n");
@@ -140,7 +142,6 @@ void destruir_lista(lista_t* lista) {
     while (actual != NULL)
     {
         tmp = actual->next;
-        free(actual->arreglo);
         free(actual);
         actual = tmp;
     }
