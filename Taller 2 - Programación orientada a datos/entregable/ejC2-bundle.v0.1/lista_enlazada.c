@@ -12,6 +12,7 @@ lista_t* nueva_lista(void) {
     {
         return NULL; //salvamos el caso en el que malloc me devuelva un puntero a NULL.
     }
+
     ptrListaEnlazada->head = NULL;
     return ptrListaEnlazada;
 }
@@ -36,17 +37,31 @@ void agregar_al_final(lista_t* lista, uint32_t* arreglo, uint64_t longitud) {
     /* la idea es al ultimo nodo con nodo.next == NULL , le asignamos el nuevo nodo */
 
     /* 1_ creo el nodo */
-    // [
     nodo_t* nuevo = malloc(sizeof(nodo_t));
 
-    
-    nuevo->arreglo = arreglo;
+    uint32_t* array = calloc(longitud, sizeof(uint32_t));
+
+    if (nuevo == NULL) {
+        // Manejo de error en caso de fallo en la asignación de memoria
+        return;
+    }
+
+    for (uint32_t i = 0; i < longitud; i++)
+    {
+        array[i] = arreglo[i];
+    }
+
+    nuevo->arreglo = array;
     nuevo->longitud = longitud;
     nuevo->next = NULL; 
-    // ]
 
 
     /* 2_ hallar al nodo que apunta a NULL */
+    if (lista->head == NULL) {
+        lista->head = nuevo;
+        return;
+    }
+
     nodo_t* ultimo = lista->head;
     while (ultimo->next != NULL)
     {
@@ -76,6 +91,7 @@ nodo_t* iesimo(lista_t* lista, uint32_t i) {
     }
     /* estamos retornando la posicion de memoria donde esta ese i */
     return actual;
+    
 }
 
 uint64_t cantidad_total_de_elementos(lista_t* lista) {    
@@ -142,9 +158,11 @@ void destruir_lista(lista_t* lista) {
     while (actual != NULL)
     {
         tmp = actual->next;
+        free(actual->arreglo);
         free(actual);
         actual = tmp;
     }
     
     free(lista);
+    
 }
