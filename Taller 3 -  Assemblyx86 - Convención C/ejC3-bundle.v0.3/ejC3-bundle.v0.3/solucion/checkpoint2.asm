@@ -20,8 +20,8 @@ global alternate_sum_4_using_c
 ; uint32_t alternate_sum_4(uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4);
 ; registros: x1[?], x2[?], x3[?], x4[?]
 alternate_sum_4:
-	;prologo
-	;devuelve el resultado de la operación x1 - x2 + x3 - x4
+	; prologo
+	; devuelve el resultado de la operación x1 - x2 + x3 - x4
 	; COMPLETAR
 
 	sub rdi, rsi ; rdi = [rdi] - [rsi]
@@ -44,31 +44,31 @@ alternate_sum_4_using_c:
 	mov rbp,rsp
 	sub rsp, 0x8
 
-	mov rdi, x1
-	mov rsi, x2
-	mov rdx, x3
-	mov rcx, x4
-
-
 	; COMPLETAR
-	; restamos x1 y x2 (pregunta: ¿Cómo mierda sabe assembly que restar tiene que tomar como parametros rdi, rsi, etc.)
+	; restamos x1 y x2 
 	CALL restar_c
+	mov r8, rax
 
+	mov rdi, rdx
+	mov rsi, rcx
 	; restamos x3 y x4
 	CALL restar_c
 
+	mov rdi, rax
+	mov rsi, r8
 	; sumamos las restas
 	CALL sumar_c
+	
 
 	;epilogo
 	pop rbp
-	ret rax
-
-
+	ret 
 
 ; uint32_t alternate_sum_4_simplified(uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4);
 ; registros: x1[?], x2[?], x3[?], x4[?]
 alternate_sum_4_simplified:
+	; devuelve el resultado la operación x1 - x2 + x3 - x4. Esta función no crea ni el epílogo ni el prólogo
+
 	ret
 
 
