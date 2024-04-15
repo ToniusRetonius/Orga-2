@@ -2,6 +2,7 @@ extern sumar_c
 extern restar_c
 ;########### SECCION DE DATOS
 section .data
+ 
 
 ;########### SECCION DE TEXTO (PROGRAMA)
 section .text
@@ -20,10 +21,16 @@ global alternate_sum_4_using_c
 ; registros: x1[?], x2[?], x3[?], x4[?]
 alternate_sum_4:
 	;prologo
+	;devuelve el resultado de la operación x1 - x2 + x3 - x4
 	; COMPLETAR
+
+	sub rdi, rsi ; rdi = [rdi] - [rsi]
+	sub rcx, rdx ; rcx = [rcx] - [rdx]
+	add rdi, rcx ; rdi = rdi + rcx = (x1 - x2) + (x3 - x4)
 
 	;recordar que si la pila estaba alineada a 16 al hacer la llamada
 	;con el push de RIP como efecto del CALL queda alineada a 8
+	mov rax, rdi
 
 	;epilogo
 	; COMPLETAR
@@ -35,12 +42,27 @@ alternate_sum_4_using_c:
 	;prologo
 	push rbp ; alineado a 16
 	mov rbp,rsp
+	sub rsp, 0x8
+
+	mov rdi, x1
+	mov rsi, x2
+	mov rdx, x3
+	mov rcx, x4
+
 
 	; COMPLETAR
+	; restamos x1 y x2 (pregunta: ¿Cómo mierda sabe assembly que restar tiene que tomar como parametros rdi, rsi, etc.)
+	CALL restar_c
+
+	; restamos x3 y x4
+	CALL restar_c
+
+	; sumamos las restas
+	CALL sumar_c
 
 	;epilogo
 	pop rbp
-	ret
+	ret rax
 
 
 
