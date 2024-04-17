@@ -21,46 +21,52 @@ global alternate_sum_4_using_c
 ; registros: x1[?], x2[?], x3[?], x4[?]
 alternate_sum_4:
 	; prologo
-	; devuelve el resultado de la operación x1 - x2 + x3 - x4
-	; COMPLETAR
+	push rbp 
+	mov rbp, rsp
 
-	sub rdi, rsi ; rdi = [rdi] - [rsi]
-	sub rcx, rdx ; rcx = [rcx] - [rdx]
-	add rdi, rcx ; rdi = rdi + rcx = (x1 - x2) + (x3 - x4)
-
-	;recordar que si la pila estaba alineada a 16 al hacer la llamada
-	;con el push de RIP como efecto del CALL queda alineada a 8
 	mov rax, rdi
+	sub rax, rsi
+	add rax, rdx
+	sub rax, rcx
 
 	;epilogo
-	; COMPLETAR
+	pop rbp
 	ret
 
 ; uint32_t alternate_sum_4_using_c(uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4);
 ; registros: x1[rdi], x2[rsi], x3[rdx], x4[rcx]
 alternate_sum_4_using_c:
 	;prologo
-	push rbp ; alineado a 16
-	mov rbp,rsp
-	sub rsp, 0x8
+	push rbp 
+	mov rbp, rsp
+	; me guardo los valores de los no volatiles
+	push rbx
+	push r12
+	push r13
 
-	; COMPLETAR
+	; nos guardamos antes del call en los registros no volatiles rbx r12
+	; esto es para que al llamar al call, si la funcion modifica los volatiles, no me pise los valores 
+	mov rbx, rdx
+	mov r12, rcx
+
 	; restamos x1 y x2 
-	CALL restar_c
-	mov r8, rax
+	CALL restar_c 
+	mov r13, rax
 
-	mov rdi, rdx
-	mov rsi, rcx
+	mov rdi, rbx
+	mov rsi, r12
 	; restamos x3 y x4
 	CALL restar_c
 
 	mov rdi, rax
-	mov rsi, r8
+	mov rsi, r13
 	; sumamos las restas
 	CALL sumar_c
-	
 
 	;epilogo
+	pop r13
+	pop r12
+	pop rbx
 	pop rbp
 	ret 
 
@@ -76,10 +82,31 @@ alternate_sum_4_simplified:
 ; registros y pila: x1[?], x2[?], x3[?], x4[?], x5[?], x6[?], x7[?], x8[?]
 alternate_sum_8:
 	;prologo
+	push rbp 
+	mov rbp, rsp
 
-	; COMPLETAR
+	; restas
+	sub rdi,rsi
+	sub rdx,rcx
+	sub r8,r9
+
+	; me traigo de la pila x7 y x8
+ 	mov rcx, DWORD PTR [rbp + 0x08 ]
+	mov r9, DWORD PTR [rbp + 0x10 ]
+
+	; resta 
+	sub rcx, r9
+
+	add rdi, rdx
+	add rdi, r8
+	add rdi, rcx
+
+	mov rax, rdi
+	 
 
 	;epilogo
+	; tengo que restaurar el valor del rbp que pushee en primer lugar?
+	pop rbp
 	ret
 
 
@@ -87,29 +114,59 @@ alternate_sum_8:
 ;void product_2_f(uint32_t * destination, uint32_t x1, float f1);
 ;registros: destination[?], x1[?], f1[?]
 product_2_f:
-	ret
+	; lo convierto a float 
+	CVTSI2SS xmm1, rsi
 
+	; operacion multiplicar
+	mulss xmm0,xmm1	
+	; guardo la op. en destinantion
+	; convierto a int de nuevo porq se trata de un puntero a uint32_t
+	; lo devuelve truncado
+	CVTSS2SI rax, xmm0
+
+	; uso un move para enteros y guardo en memoria 
+	mov [rdi], rax
+
+	ret
 
 ;extern void product_9_f(uint32_t * destination
 ;, uint32_t x1, float f1, uint32_t x2, float f2, uint32_t x3, float f3, uint32_t x4, float f4
 ;, uint32_t x5, float f5, uint32_t x6, float f6, uint32_t x7, float f7, uint32_t x8, float f8
 ;, uint32_t x9, float f9);
-;registros y pila: destination[rdi], x1[?], f1[?], x2[?], f2[?], x3[?], f3[?], x4[?], f4[?]
-;	, x5[?], f5[?], x6[?], f6[?], x7[?], f7[?], x8[?], f8[?],
-;	, x9[?], f9[?]
+;registros y pila: destination[rdi], x1[rsi], f1[xmm0], x2[rdx], f2[xmm1], x3[rcx], f3[xmm2], x4[r8], f4[xmm3]
+;	, x5[r9], f5[xmm4], x6[pila], f6[xmm5], x7[pila], f7[xmm6], x8[pila], f8[xmm7],
+;	, x9[pila], f9[pila]
 product_9_f:
 	;prologo
 	push rbp
 	mov rbp, rsp
 
-	;convertimos los flotantes de cada registro xmm en doubles
-	; COMPLETAR
+	; pasamos los parametros de tipo float a double con CVTPS2PD
+	CVTPS2PD xmm0, xmm0
+	CVTPS2PD xmm1, xmm1
+	CVTPS2PD xmm2, xmm2
+	CVTPS2PD xmm3, xmm3
+	CVTPS2PD xmm4, xmm4
+	CVTPS2PD xmm5, xmm5
+	CVTPS2PD xmm6, xmm6
+	CVTPS2PD xmm7, xmm7
+	; falta f9
+	mov
 
-	;multiplicamos los doubles en xmm0 <- xmm0 * xmm1, xmmo * xmm2 , ...
-	; COMPLETAR
+	; multiplicamos los doubles en xmm0 <- xmm0 * xmm1, xmmo * xmm2 , ...
+	mulss xmm0, xmm1
+	mulss xmm0, xmm2
+	mulss xmm0, xmm3
+	mulss xmm0, xmm4
+	mulss xmm0, xmm5
+	mulss xmm0, xmm6
+	mulss xmm0, xmm7
+	; me fata f9 que esta en la pila
 
 	; convertimos los enteros en doubles y los multiplicamos por xmm0.
+	; convertimos los enteros en doubles CVTSI2SS
 	; COMPLETAR
+	CVTSI2SS xmm1, rsi
 
 	; epilogo
 	pop rbp
