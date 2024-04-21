@@ -36,15 +36,15 @@ strCmp:
 	je .fin
 
 	; a es null
-	cmps rdi, 0
+	cmp rdi, 0
 	jz .menor
 	; b es null
-	cmps rsi, 0
+	cmp rsi, 0
 	jz .mayor
 
-	mov r8, [rdi]
-	mov r9, [rsi]
-	CMPS r8,r9
+	movzx r8, byte [rdi]
+	movzx r9, byte [rsi]
+	cmp r8,r9
 
 	je .iguales
 	jl .menor
@@ -70,21 +70,7 @@ strCmp:
 
 ; char* strClone(char* a)
 strClone:
-	; me guardo la compia del puntero
-	mov rcx, rdi
-	call strLen
-
-	mov rdi, rax
-	call malloc
-
-	; rax ya tiene el puntero 
-	mov rdx, rax
-	.ciclo:
-	movsb 
-	
-
 	ret
-
 ; void strDelete(char* a)
 strDelete:
 	CALL free
