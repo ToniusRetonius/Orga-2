@@ -85,14 +85,18 @@ alternate_sum_8:
 	push rbp 
 	mov rbp, rsp
 
+	; seteamos rax en 0
+	xor rax, rax
+
 	; restas
 	sub rdi,rsi
 	sub rdx,rcx
 	sub r8,r9
 
 	; me traigo de la pila x7 y x8
- 	mov rcx, DWORD PTR [rbp + 0x08 ]
-	mov r9, DWORD PTR [rbp + 0x10 ]
+	; el offset es 0x10 y 0x18 porq en 0x08 tenemos el RIP
+ 	mov rcx, DWORD PTR [rbp + 0x10 ]
+	mov r9, DWORD PTR [rbp + 0x18 ]
 
 	; resta 
 	sub rcx, r9
@@ -122,7 +126,7 @@ product_2_f:
 	; guardo la op. en destinantion
 	; convierto a int de nuevo porq se trata de un puntero a uint32_t
 	; lo devuelve truncado
-	CVTSS2SI rax, xmm0
+	CVTTSS2SI rax, xmm0
 
 	; uso un move para enteros y guardo en memoria 
 	mov [rdi], rax
@@ -151,7 +155,7 @@ product_9_f:
 	CVTPS2PD xmm6, xmm6
 	CVTPS2PD xmm7, xmm7
 	; falta f9
-	mov
+	mov 
 
 	; multiplicamos los doubles en xmm0 <- xmm0 * xmm1, xmmo * xmm2 , ...
 	mulss xmm0, xmm1
