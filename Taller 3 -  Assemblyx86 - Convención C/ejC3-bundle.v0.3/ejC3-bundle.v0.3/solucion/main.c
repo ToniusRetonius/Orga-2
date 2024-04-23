@@ -8,11 +8,9 @@
 
 int main (void){
 	/* Acá pueden realizar sus propias pruebas */
-	char* a = malloc(sizeof(char));
-	char* b = malloc(sizeof(char));
-	a = 'HOla';
-	b = 'HOla';
-	printf(strCmp(&a,&b));	
+	printf("Hola mundo");	
+	printf("Hola vida");	
+	printf("Hola trueno");	
 	return 0;    
 }
 

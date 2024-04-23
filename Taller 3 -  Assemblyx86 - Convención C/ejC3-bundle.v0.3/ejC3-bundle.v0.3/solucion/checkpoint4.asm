@@ -24,37 +24,25 @@ strCmp:
 	; se cumple que (a,b) < (a',b') sii a < a' o (a == a' y b < b')
 	; podemos definir recursivamente la comparacion
 	; traemos el caracter
+	push rbp
+	sub rbp, rsp
 
-	xor rcx, rcx
 	xor rax, rax
-	cmp rcx, rdi
-	je .fin
 
 	.comparacion:
-	; ambos null
-	cmpvs rdi,rsi
+
+	; el reg cl es de 8 bits
+	mov cl, byte[rsi]
+	cmp byte[rdi], cl
+	jg .mayor
+	jl .menor
+
+	cmp byte[rdi], 0
 	je .fin
 
-	; a es null
-	cmp rdi, 0
-	jz .menor
-	; b es null
-	cmp rsi, 0
-	jz .mayor
-
-	movzx r8, byte [rdi]
-	movzx r9, byte [rsi]
-	cmp r8,r9
-
-	je .iguales
-	jl .menor
-	jg .mayor
-	
-	.iguales:
 	; avanzar al sig char
 	inc rdi
 	inc rsi
-	xor rax,rax
 	jmp .comparacion
 
 	.menor:
@@ -66,19 +54,85 @@ strCmp:
 	jmp .fin
 
 	.fin:
+	pop rbp
 	ret
 
 ; char* strClone(char* a)
 strClone:
+	push rbp
+	sub rbp, rsp
+
+	; el puntero es valido
+	; la cadena puede ser vacia
+	; me guardo la copia del puntero al str en rcx
+	mov rcx, rdi
+
+	; llamo a len para saber cuanto espacio pedir
+	call strLen
+
+	; si es la cadena vacia
+	cmp rax,0 
+	je .null
+	; si no
+	mov r8, rax
+	; que pasa con la pila? 
+
+	; le pedimos a malloc memoria para len de str
+	; nos da el puntero de res
+	; en r8 tengo la len por tanto, le paso a malloc eso
+	mov rdi, r8
+	call malloc
+	
+	mov r9, rax
+	; en rax tengo el puntero al espacio libre
+	; tengo que llenar ese espacio ahora
+	; while r8 >= 0  ... guardo de a byte en memoria 
+	; de donde saco el dato?  del puntero en rcx
+	; rcx + r8 (pos vieja)
+	; r9 + r8 (pos nueva)
+	
+	.ciclo: 
+	cmp r8,0 
+	je .fin
+
+	mov cl, byte[rcx + r8]
+	mov byte[r9 + r8], cl
+
+	add r8,-1
+	jmp .ciclo
+
+	.null:
+	xor rax,rax
+
+	.fin:
+	; rax ni lo tocamos
+	
+	pop rbp
 	ret
 ; void strDelete(char* a)
 strDelete:
+	push rbp
+	sub rbp, rsp
+	
 	CALL free
+	
+	pop rbp
 	ret
+
 
 ; void strPrint(char* a, FILE* pFile)
 strPrint:
+	push rbp
+	sub rbp, rsp
+	
+	; little endian
+	mov rcx, rdi
+    mov rdi, rsi
+    mov rsi, rcx
 
+    call fprintf
+	
+	pop rbp
 	ret
 
 ; uint32_t strLen(char* a)
