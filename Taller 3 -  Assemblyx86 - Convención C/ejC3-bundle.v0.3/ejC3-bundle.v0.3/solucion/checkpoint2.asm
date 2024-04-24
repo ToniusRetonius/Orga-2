@@ -146,16 +146,14 @@ product_9_f:
 	mov rbp, rsp
 
 	; pasamos los parametros de tipo float a double con CVTPS2PD
-	CVTPS2PD xmm0, xmm0
-	CVTPS2PD xmm1, xmm1
-	CVTPS2PD xmm2, xmm2
-	CVTPS2PD xmm3, xmm3
-	CVTPS2PD xmm4, xmm4
-	CVTPS2PD xmm5, xmm5
-	CVTPS2PD xmm6, xmm6
-	CVTPS2PD xmm7, xmm7
-	; falta f9
-	mov 
+	CVTSS2SD xmm0, xmm0
+	CVTSS2SD xmm1, xmm1
+	CVTSS2SD xmm2, xmm2
+	CVTSS2SD xmm3, xmm3
+	CVTSS2SD xmm4, xmm4
+	CVTSS2SD xmm5, xmm5
+	CVTSS2SD xmm6, xmm6
+	CVTSS2SD xmm7, xmm7
 
 	; multiplicamos los doubles en xmm0 <- xmm0 * xmm1, xmmo * xmm2 , ...
 	mulss xmm0, xmm1
@@ -165,12 +163,43 @@ product_9_f:
 	mulss xmm0, xmm5
 	mulss xmm0, xmm6
 	mulss xmm0, xmm7
-	; me fata f9 que esta en la pila
+	; falta f9 de la pila
+	movd xmm1, [rbp + 0x30]
+	CVTSS2SD xmm1, xmm1
+	mulsd xmm0,xmm1
+
 
 	; convertimos los enteros en doubles y los multiplicamos por xmm0.
+	CVTSI2SD xmm1, rsi
+	mulsd xmm0, xmm1
+	CVTSI2SD xmm1, rdx
+	mulsd xmm0, xmm1
+	CVTSI2SD xmm1, rcx
+	mulsd xmm0, xmm1
+	CVTSI2SD xmm1, r8
+	mulsd xmm0, xmm1
+	CVTSI2SD xmm1, r9
+	mulsd xmm0, xmm1
+
+	mov rdx, [rbp + 0x10]
+    CVTSI2SD xmm1, rdx
+    mulsd xmm0, xmm1
+
+    mov rdx, [rbp + 0x18]
+    CVTSI2SD xmm1, rdx
+    mulsd xmm0, xmm1
+
+    mov rdx, [rbp + 0x20]
+    CVTSI2SD xmm1, rdx
+    mulsd xmm0, xmm1
+
+    mov rdx, [rbp + 0x28]
+    CVTSI2SD xmm1, rdx
+    mulsd xmm0, xmm1
+
 	; convertimos los enteros en doubles CVTSI2SS
-	; COMPLETAR
-	CVTSI2SS xmm1, rsi
+
+	movq [rdi], xmm0
 
 	; epilogo
 	pop rbp

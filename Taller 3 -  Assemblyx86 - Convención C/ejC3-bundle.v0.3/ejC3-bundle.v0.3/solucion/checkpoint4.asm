@@ -25,7 +25,7 @@ strCmp:
 	; podemos definir recursivamente la comparacion
 	; traemos el caracter
 	push rbp
-	sub rbp, rsp
+	mov rbp, rsp
 
 	xor rax, rax
 
@@ -60,7 +60,7 @@ strCmp:
 ; char* strClone(char* a)
 strClone:
 	push rbp
-	sub rbp, rsp
+	mov rbp, rsp
 
 	; el puntero es valido
 	; la cadena puede ser vacia
@@ -82,6 +82,10 @@ strClone:
 	; en r8 tengo la len por tanto, le paso a malloc eso
 	mov rdi, r8
 	call malloc
+	
+	cmp rax,0 
+	je .null
+	
 	
 	mov r9, rax
 	; en rax tengo el puntero al espacio libre
@@ -112,10 +116,14 @@ strClone:
 ; void strDelete(char* a)
 strDelete:
 	push rbp
-	sub rbp, rsp
-	
+	mov rbp, rsp
+
+	cmp rdi,0
+	je .fin
+
 	CALL free
-	
+
+	.fin:
 	pop rbp
 	ret
 
@@ -123,12 +131,7 @@ strDelete:
 ; void strPrint(char* a, FILE* pFile)
 strPrint:
 	push rbp
-	sub rbp, rsp
-	
-	; little endian
-	mov rcx, rdi
-    mov rdi, rsi
-    mov rsi, rcx
+	mov rbp, rsp
 
     call fprintf
 	
@@ -140,7 +143,7 @@ strLen:
 	; recibimos puntero a char RDI
 	; mientras que la data de RDI sea != null, sumo
 	push rbp
-	sub rbp, rsp
+	mov rbp, rsp
 
 	; en rax me guardo la suma acumulada (comienza en 0)
 	xor rax, rax 
