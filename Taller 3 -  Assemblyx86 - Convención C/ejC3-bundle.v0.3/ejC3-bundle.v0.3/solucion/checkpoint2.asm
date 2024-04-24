@@ -74,7 +74,10 @@ alternate_sum_4_using_c:
 ; registros: x1[?], x2[?], x3[?], x4[?]
 alternate_sum_4_simplified:
 	; devuelve el resultado la operación x1 - x2 + x3 - x4. Esta función no crea ni el epílogo ni el prólogo
-
+	mov rax, rdi
+    sub rax, rsi
+    add rax, rdx
+    sub rax, rcx
 	ret
 
 
@@ -163,9 +166,11 @@ product_9_f:
 	mulss xmm0, xmm5
 	mulss xmm0, xmm6
 	mulss xmm0, xmm7
-	; falta f9 de la pila
+
+	; f9 
 	movd xmm1, [rbp + 0x30]
 	CVTSS2SD xmm1, xmm1
+	; multiplicamos 
 	mulsd xmm0,xmm1
 
 
@@ -181,24 +186,24 @@ product_9_f:
 	CVTSI2SD xmm1, r9
 	mulsd xmm0, xmm1
 
+	; x6
 	mov rdx, [rbp + 0x10]
     CVTSI2SD xmm1, rdx
     mulsd xmm0, xmm1
-
+	; x7
     mov rdx, [rbp + 0x18]
     CVTSI2SD xmm1, rdx
     mulsd xmm0, xmm1
-
+	; x8
     mov rdx, [rbp + 0x20]
     CVTSI2SD xmm1, rdx
     mulsd xmm0, xmm1
-
+	; x9
     mov rdx, [rbp + 0x28]
     CVTSI2SD xmm1, rdx
     mulsd xmm0, xmm1
 
-	; convertimos los enteros en doubles CVTSI2SS
-
+	; guardamos en destination
 	movq [rdi], xmm0
 
 	; epilogo

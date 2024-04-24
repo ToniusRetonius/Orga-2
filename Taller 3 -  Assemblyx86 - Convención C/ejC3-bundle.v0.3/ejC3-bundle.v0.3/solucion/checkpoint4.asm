@@ -26,18 +26,19 @@ strCmp:
 	; traemos el caracter
 	push rbp
 	mov rbp, rsp
-
 	xor rax, rax
 
 	.comparacion:
 
 	; el reg cl es de 8 bits
+	; comparo char vs char
 	mov cl, byte[rsi]
 	cmp byte[rdi], cl
 	jg .mayor
 	jl .menor
 
-	cmp byte[rdi], 0
+	; si ambos son iguales y llegan hasta acá es porq son lo mismo
+	cmp byte[rdi], 0x00
 	je .fin
 
 	; avanzar al sig char
@@ -57,81 +58,73 @@ strCmp:
 	pop rbp
 	ret
 
+
 ; char* strClone(char* a)
 strClone:
 	push rbp
 	mov rbp, rsp
-
-	; el puntero es valido
-	; la cadena puede ser vacia
-	; me guardo la copia del puntero al str en rcx
-	mov rcx, rdi
-
-	; llamo a len para saber cuanto espacio pedir
+	
+	; guardamos el puntero en la pila
+	push rdi
+	; alineamos
+	sub rsp, 0x8
+	; necesitamos la len para saber cuánta data pedir
 	call strLen
+	; necesitamos guardarnos el char null
+	inc rax
+	; pusheamos esa data a la pila
+	push rax
+	; alineamos
+	sub rsp, 0x8
 
-	; si es la cadena vacia
-	cmp rax,0 
-	je .null
-	; si no
-	mov r8, rax
-	; que pasa con la pila? 
-
-	; le pedimos a malloc memoria para len de str
-	; nos da el puntero de res
-	; en r8 tengo la len por tanto, le paso a malloc eso
-	mov rdi, r8
+	; pedimos memoria
+	mov rdi, rax
 	call malloc
 	
-	cmp rax,0 
-	je .null
-	
-	
-	mov r9, rax
-	; en rax tengo el puntero al espacio libre
-	; tengo que llenar ese espacio ahora
-	; while r8 >= 0  ... guardo de a byte en memoria 
-	; de donde saco el dato?  del puntero en rcx
-	; rcx + r8 (pos vieja)
-	; r9 + r8 (pos nueva)
-	
-	.ciclo: 
-	cmp r8,0 
-	je .fin
+	; guardamos el puntero q nos da malloc
+	mov r8, rax
+	mov rdi, rax
 
-	mov cl, byte[rcx + r8]
-	mov byte[r9 + r8], cl
+	; nos traemos la data de longitud y la guardamos en rcx
+	add rsp, 0x8
+	pop rcx
+	; nos traemos la dire de a y la guardamos en rcx
+	add rsp, 0x8
+	pop rdx
 
-	add r8,-1
-	jmp .ciclo
+	.ciclo:
+	; voy guardando byte a byte
+	mov al, byte[rdx]
+	mov byte[rdi], al
+	inc rdx
+	inc rdi
+	loop .ciclo
 
-	.null:
-	xor rax,rax
-
-	.fin:
-	; rax ni lo tocamos
-	
+	; devolvemos el puntero
+	mov rax, r8
 	pop rbp
 	ret
+
 ; void strDelete(char* a)
 strDelete:
 	push rbp
 	mov rbp, rsp
 
-	cmp rdi,0
-	je .fin
-
 	CALL free
 
-	.fin:
 	pop rbp
 	ret
 
-
 ; void strPrint(char* a, FILE* pFile)
+; int fprintf(FILE *stream, const char *format-string, argument-list);
 strPrint:
 	push rbp
 	mov rbp, rsp
+
+	; tenemos que pasarle al revés los parám a la función
+	mov rcx, rdi
+    mov rdi, rsi
+    mov rsi, rcx
 
     call fprintf
 	
@@ -160,19 +153,15 @@ strLen:
 	; si la data cargada, es null (0)
 	cmp r8, 0
 	je .fin_ciclo 
-	
 	; rax ++ 
 	inc rax
-
 	; salto al prox char
 	inc rdi 
-
 	; loopea
 	jmp .ciclo
-
+	
 	.fin_ciclo:
 	; restauro la pila
-
 	pop rbp	
 	ret
 

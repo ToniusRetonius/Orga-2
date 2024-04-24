@@ -1,14 +1,63 @@
-### Checkpoint 1
+a) ¿Qué entienden por convencion de llamada? ¿Cómo está definida en la ABI de System V para 64 y 32 bits?
+Es un acuerdo en el que se determina como se realizan los llamados a funciones, dónde se deben guardar los parámetros,
+y como se debe acomodar la estructura. En 64 bits la convenvión se especifica para los registros de propósito
+general y la pila, mientraas que en 32 bits únicamente se utiliza la pila.
 
-a) La convención de llamada se entiende como la forma de enviar y recibir información usando funciones de usuarix. En el caso de la ABI (Interfaz Binaria de Aplicación) de System V para 64 y 32 bits, tenemos dos convenciones de llamada particulares:
-=> *Para 64 bits:* Utiliza los registros de propósito general y la pila.
-*=> Para 32 bits:* Solo se utiliza la pila.
+b) ¿Quién toma la responsabilidad de asegurar que se cumple la convención de llamada en C? ¿Quién toma la respon-
+sabilidad de asegurar que se cumple la convención de llamada en ASM?
+En C el encargado de asegurar la convención de llamada es el compilador, mientras que ASM es el programador.
 
-b) El encargado de que se cumpla la convención de llamada en C es el compilador. En Assembler es el programador el encargado de cumplir la convención.
+c) ¿Qué es un stack frame? ¿A qué se le suele decir prólogo y epı́logo?
+Un stack frame es una sección de la pila que contiene la información importante para una función: incluye
+los parámetros que recibe, las variables locales/temporales, la dirección de retorno y el padding
+(si es que se necesita).
+El prólogo es la parte del código en la cual se reserva el espacio necesario para las variables temporales,
+se realiza padding para mantener alineada la pila y se preservan los valores de los registros no volátiles.
+El epílogo es la parte del código donde se restauran los valores de los registros no volatiles y se
+devuelve la pila a su estado inicial.
 
-c) El *Stack Frame* es la región delimitada por el puntero EBP (Base Stack Pointer) y el ESP (Register Stack Pointer) en la arquitectura de 32 bits y en 64 bits los registros RBP y RSP con las mismas funcionalidades respectivamente. La misma se utiliza para organizar y gestionar el flujo de ejecución y almacenamiento de datos durante la ejecución de una función del programa.
-Por otro lado, el *prólogo* es donde se reserva espacio en la pila para datos temporales, agregado de padding y mantenerla alineada a 16 bytes; el *epílogo* es donde restauramos los valores de registros no volatiles y devolvemos la pila a su estado inicial.
+d) ¿Cuál es el mecanismo utilizado para almacenar variables temporales?
+Al almacenar variables temporales, primero se reserva la memoria necesaria realizando un sub al RSP.
+Despues para almacenar los datos, se accede mediante un offset negativo al RBP.
 
-d) Las variables temporales se guardan en la pila en posiciones relativas al RBP para poder acceder a las mismas.
+e) ¿A cuántos bytes es necesario alinear la pila si utilizamos funciones de libc? ¿Si la pila está alienada a 16 bytes
+al realizarse una llamada función, cuál va a ser su alineamiento al ejecutar la primera instrucción de la función
+llamada?
+Se deben alinear a 16 bytes. Al ejecutar la primera intruccion de una función, la pila se encuentra desalineada
+ya que previamente se realiza un push del RBP
 
-e) 
+f) Una actualización de bibliotecas realiza los siguientes cambios a distintas funciones. ¿Cómo se ven impactados los
+programas ya compilados?
+Sugerencia: Describan la convención de llamada de cada una (en su versión antes y después del cambio).
+
+- Una biblioteca de procesamiento cambia la estructura pixel t:
+    • Antes era struct { uint8_t r, g, b, a; }
+    • Ahora es struct { uint8_t a, r, g, b; }
+¿Cómo afecta esto a la función void a_escala_de_grises(uint32_t ancho, uint32_t alto, pixel_t* data)?
+
+El problema es que cuando se quiere acceder a un elemento de data, se va a devolver uno distinto. Por ejemplo:
+data->a = data[0] = devuelve el valor de r != a
+
+
+- Se reordenan los parámetros (i.e. intercambian su posición) de la función
+float sumar_floats(float* array, uint64_t tamano).
+
+El problema es que los valores se van a guardan al revés en los registros, por lo que no va a tener el comportamiento
+deseado.
+
+- La función uint16_t registrar_usuario(char* nombre, char* contrasena) registra un usuario y devuelve su ID.
+ ara soportar más usuarios se cambia el tipo de retorno por uint64_t.
+
+OPCION 1: Se siguen generando 16 bists en la funcion y en el registro se siguen guardando esos 16 bits,
+OPCION 2: En el registro se guardan 64 bits, pero internamente se usaran 16 bits.
+
+- La función void cambiar_nombre(uint16_t user_id, char* nuevo_nombre) también recibe la misma ac-
+tualización. ¿Qué sucede ahora?
+
+preguntar
+
+- Se reordenan los parámetros de int32_t multiplicar(float a, int32_t b).
+Una vez analizados los casos especı́ficos describan la situación general: ¿Qué sucede si una función externa utilizada
+por nuestro programa 1 cambia su interfaz (parámetros o tipo devuelto) luego de una actualización?
+
+No se va a poder guardar el float en el registro RAX de 64 bits.
