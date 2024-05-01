@@ -53,11 +53,3 @@ OPCION 2: En el registro se guardan 64 bits, pero internamente se usaran 16 bits
 
 - La función void cambiar_nombre(uint16_t user_id, char* nuevo_nombre) también recibe la misma ac-
 tualización. ¿Qué sucede ahora?
-
-preguntar
-
-- Se reordenan los parámetros de int32_t multiplicar(float a, int32_t b).
-Una vez analizados los casos especı́ficos describan la situación general: ¿Qué sucede si una función externa utilizada
-por nuestro programa 1 cambia su interfaz (parámetros o tipo devuelto) luego de una actualización?
-
-No se va a poder guardar el float en el registro RAX de 64 bits.
