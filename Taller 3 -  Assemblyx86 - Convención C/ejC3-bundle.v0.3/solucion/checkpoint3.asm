@@ -38,11 +38,9 @@ cantidad_total_de_elementos:
 	; si la data cargada, es null (0)
 	cmp r8, 0
 	je .fin_ciclo 
-
-	mov r9, [r8 + LONGITUD_OFFSET]
 	
 	; rax ++ 
-	add rax, r9
+	add eax, [r8 + LONGITUD_OFFSET]
 
 	; salto al prox nodo
 	mov rdi, r8
@@ -77,11 +75,9 @@ cantidad_total_de_elementos_packed:
 	; si la data cargada, es null (0)
 	cmp r8, 0
 	je .fin_ciclo 
-
-	mov r9, [r8 + PACKED_LONGITUD_OFFSET]
 	
-	; rax ++ 
-	add rax, r9
+	; eax ++ 
+	add eax, [r8 + PACKED_LONGITUD_OFFSET]
 
 	; salto al prox nodo
 	mov rdi, r8

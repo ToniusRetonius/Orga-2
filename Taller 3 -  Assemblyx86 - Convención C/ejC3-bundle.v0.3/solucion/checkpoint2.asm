@@ -122,17 +122,18 @@ alternate_sum_8:
 ;registros: destination[?], x1[?], f1[?]
 product_2_f:
 	; lo convierto a float 
-	cvtsi2ss xmm1, rsi
+	cvtsi2sd xmm1, rsi
+	cvtss2sd xmm0, xmm0
 
 	; operacion multiplicar
-	mulss xmm0,xmm1	
+	mulsd xmm0,xmm1	
 	; guardo la op. en destinantion
 	; convierto a int de nuevo porq se trata de un puntero a uint32_t
 	; lo devuelve truncado
-	cvttss2si rax, xmm0
+	cvttsd2si rax, xmm0
 
 	; uso un move para enteros y guardo en memoria 
-	mov [rdi], rax
+	mov [rdi], eax
 
 	ret
 
