@@ -21,22 +21,30 @@ extern str_concat
 string_proc_list_create_asm:
     mov rdi, 0x10
     call malloc
-    mov qword [rax + 0x0], 0
-    mov qword [rax + 0x8], 0
+    mov qword [rax], 0
     ret
 
 string_proc_node_create_asm:
     ; type en rdi
     ; char* en rsi
-    mov rcx, rdi
-    mov rdx, [rsi]
+    push rbp
+    mov rbp, rsp
 
-    mov rdi, 0x12
+    push rdi
+    push rsi
+
+    mov rdi, 32
     call malloc
 
-    mov byte[rax + 0x10], rcx
-    mov byte[rax + 0x11], rdx
+    pop rsi
+    pop rdi
 
+    mov dword [rax], 0 
+    mov dword [rax + 8], 0 
+    mov byte [rax + 16], rdi
+    mov dword [rax + 24], rsi
+
+    pop rbp
     ret
 string_proc_list_add_node_asm:
     ; s_p_l* en rdi

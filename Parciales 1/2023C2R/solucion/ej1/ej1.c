@@ -9,41 +9,37 @@ string_proc_list* string_proc_list_create(void){
 
 string_proc_node* string_proc_node_create(uint8_t type, char* hash){
 	string_proc_node* nuevo = malloc(sizeof(string_proc_node));
-	nuevo->hash = hash;
-	nuevo->type = type;
 	nuevo->next = NULL;
 	nuevo->previous = NULL;
+	nuevo->type = type;
+	nuevo->hash = hash;
 	return nuevo;
 }
 
 void string_proc_list_add_node(string_proc_list* list, uint8_t type, char* hash){
-	string_proc_node actual = list->first;
-
-	while (actual->next != NULL)
-	{
-		actual = actual->next;
-	}
-	/* actual es el ultimo */
 	string_proc_node* nuevo = string_proc_node_create(type, hash);
-	actual->next = nuevo;
-	nuevo->previous = actual;
+	string_proc_node ultimo = list->last;
+	
+	ultimo->next = nuevo;
+	nuevo->previous = ultimo;
 
+	list->last = nuevo;
 }
 
 char* string_proc_list_concat(string_proc_list* list, uint8_t type , char* hash){
+	char* res = malloc(sizeof(uint64_t));
+	res = NULL;
+
 	string_proc_node actual = list->first;
-	char* res = malloc(sizeof(char*));
 	
 	while (actual->next != NULL)
 	{
-		if (actual->type == type && actual->type == actual->next->type)
+		if (actual->type == type)
 		{
-			res = str_concat(actual->hash, actual->next->hash);
+			res = str_concat(res,actual->hash);
 		}
 		actual = actual->next;
 	}
-	/* una vez concatenados todos los hash, el q me pasan */
-	res = str_concat(actual->hash, hash);
 	return res;
 }
 
