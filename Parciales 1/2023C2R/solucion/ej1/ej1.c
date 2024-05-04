@@ -27,8 +27,8 @@ void string_proc_list_add_node(string_proc_list* list, uint8_t type, char* hash)
 }
 
 char* string_proc_list_concat(string_proc_list* list, uint8_t type , char* hash){
-	char* res = malloc(sizeof(uint64_t));
-	res = NULL;
+	char* res;
+	res = hash;
 
 	string_proc_node actual = list->first;
 	

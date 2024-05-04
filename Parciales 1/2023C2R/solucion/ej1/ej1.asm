@@ -19,9 +19,14 @@ extern str_concat
 
 
 string_proc_list_create_asm:
-    mov rdi, 0x10
+    push rbp
+    mov rbp, rsp
+
+    mov rdi, 10
     call malloc
     mov qword [rax], 0
+    
+    pop rbp
     ret
 
 string_proc_node_create_asm:
@@ -49,23 +54,19 @@ string_proc_node_create_asm:
 string_proc_list_add_node_asm:
     ; s_p_l* en rdi
     ; type en rsi
-    ; char* hash rcx
+    ; char* hash rdx
+    push rbp
+    mov rbp, rsp
 
-    mov rdx, dword[rdi]
+    ; uso los no volátiles
+    push r10
+    push r11
+    mov r10, rsi ; r10 = type
+    mov r11, rdx ; r11 = char* = hash
 
-    ciclo:
-    cmp dword[rdx], 0
-    je fin
-
-    add rdx, 0xA
-    jmp ciclo
-
-    fin
-    mov rdi, rsi
-    mov rsi, rcx
-    call string_proc_node_create_asm
 
     mov 
     ret 
 
 string_proc_list_concat_asm:
+
