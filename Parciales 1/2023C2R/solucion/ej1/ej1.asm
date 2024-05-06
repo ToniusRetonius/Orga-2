@@ -4,6 +4,14 @@
 %define FALSE 0
 
 section .data
+%define LIST_SIZE 16
+%define LIST_FIRST 0
+%define LIST_LAST 8
+%define NODE_T_SIZE 32
+%define NODE_NEXT 0
+%define NODE_PREV 8
+%define NODE_TYPE 16
+%define NODE_HASH 24
 
 section .text
 
@@ -22,51 +30,77 @@ string_proc_list_create_asm:
     push rbp
     mov rbp, rsp
 
-    mov rdi, 10
+    mov rdi, LIST_SIZE
     call malloc
-    mov qword [rax], 0
+
+    xor rsi,rsi
+    mov [rax + LIST_FIRST], rsi
+    mov [rax + LIST_LAST], rsi
     
     pop rbp
     ret
 
 string_proc_node_create_asm:
-    ; type en rdi
-    ; char* en rsi
     push rbp
     mov rbp, rsp
 
-    push rdi
-    push rsi
-
-    mov rdi, 32
+    push r12    
+    push r13   
+   
+    mov r12, dil                    ; type en rdi pero el mini (8 bits)
+    mov r13, rsi                    ; char* en rsi
+    
+    mov rdi, NODE_T_SIZE
     call malloc
 
-    pop rsi
-    pop rdi
+    xor rdx, rdx
 
-    mov dword [rax], 0 
-    mov dword [rax + 8], 0 
-    mov byte [rax + 16], rdi
-    mov dword [rax + 24], rsi
+    mov [rax + NODE_NEXT], rdx
+    mov [rax + NODE_PREV], rdx
+    mov [rax + NODE_TYPE], r12b     ; r12b es el low 8-bit 
+    mov [rax + NODE_HASH], r13
 
+    pop r13
+    pop r12
     pop rbp
     ret
+
+; s_p_l* en rdi
 string_proc_list_add_node_asm:
-    ; s_p_l* en rdi
-    ; type en rsi
-    ; char* hash rdx
     push rbp
     mov rbp, rsp
 
-    ; uso los no volátiles
-    push r10
-    push r11
-    mov r10, rsi ; r10 = type
-    mov r11, rdx ; r11 = char* = hash
+    push r12
+    sub rsp, 8                      ; alineamos la pila
+    mov r12, rdi                    ; guardamos el puntero a list en un no volátil
+
+    mov rdi, rsi                    ; type en rdi
+    mov rsi, rdx                    ; hash en rsi
+    call string_proc_node_create_asm 
+
+    cmp [r12 + LIST_LAST], 0
+    je first
+    jne notfirst
+
+    notfirst:
+    mov rdi, [r12 + LIST_LAST]      ; ultimo = list->last;
+    mov [rdi + NODE_NEXT], rax      ; ultimo->next = nuevo;
+    mov [rax + NODE_PREV], rdi      ; nuevo->previous = ultimo;
+    jmp fin
+
+    first: 
+    mov [r12 + LIST_FIRST], rax      ; list->first = nuevo;
+    mov [r12 + LIST_LAST], rax      ; list->last = nuevo;
+    jmp fin
 
 
-    mov 
+    fin:
+    add rsp, 8
+    pop r12
+    pop rbp
     ret 
 
 string_proc_list_concat_asm:
+
+    
 

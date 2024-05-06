@@ -18,12 +18,22 @@ string_proc_node* string_proc_node_create(uint8_t type, char* hash){
 
 void string_proc_list_add_node(string_proc_list* list, uint8_t type, char* hash){
 	string_proc_node* nuevo = string_proc_node_create(type, hash);
-	string_proc_node ultimo = list->last;
-	
-	ultimo->next = nuevo;
-	nuevo->previous = ultimo;
 
-	list->last = nuevo;
+	if (list->last != NULL)
+	{
+		string_proc_node ultimo = list->last;
+		
+		ultimo->next = nuevo;
+		nuevo->previous = ultimo;
+
+		list->last = nuevo;
+	}
+	else
+	{
+		list->first = nuevo;
+		list->last = nuevo;
+	}
+	
 }
 
 char* string_proc_list_concat(string_proc_list* list, uint8_t type , char* hash){
