@@ -222,12 +222,12 @@ int main()
     test_dot_product();
     printf("\n");
 
-/*     printf("= Checkpoint 2\n");
+    printf("= Checkpoint 2\n");
     printf("==============\n");
     test_four_of_a_kind();
 
     printf("\n");
 
-    tests_end(); */
+    tests_end(); 
     return 0;
 }
