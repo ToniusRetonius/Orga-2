@@ -1,6 +1,6 @@
 global YUYV_to_RGBA
 
-
+section .data
 
 ;########### SECCION DE TEXTO (PROGRAMA)
 section .text

@@ -32,9 +32,7 @@ typedef struct yuyv_t {
 //*******************************
 //Declaración de funciones de ej2
 //*******************************
-void YUYV_to_RGBA( int8_t *X, uint8_t *Y, uint32_t width, 
-                          uint32_t height  );
-void YUYV_to_RGBA_c( int8_t *X, uint8_t *Y, uint32_t width, 
-                          uint32_t height  );
+void YUYV_to_RGBA( int8_t *X, uint8_t *Y, uint32_t width, uint32_t height  );
+void YUYV_to_RGBA_c( int8_t *X, uint8_t *Y, uint32_t width, uint32_t height  );
 
 #endif /* EJ2 */
