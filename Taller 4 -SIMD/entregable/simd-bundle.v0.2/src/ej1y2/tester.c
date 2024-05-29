@@ -153,8 +153,7 @@ TEST(test_dot_product)
 
 /**
  * Tests checkpoint 2
- */
-
+*/
 #define HANDS 1024
 
 TEST(test_four_of_a_kind)
@@ -193,8 +192,8 @@ TEST(test_four_of_a_kind)
         if (*test__fallo)
         {
             // print hands
-            for (int i = 0; i < HANDS; i++)
-            {
+            for (int i = 0; i < 4; i++)
+           {
                 printf("Hand %d: ", i);
                 for (int j = 0; j < 4; j++)
                 {
@@ -225,9 +224,9 @@ int main()
     printf("= Checkpoint 2\n");
     printf("==============\n");
     test_four_of_a_kind();
-
+    
     printf("\n");
 
-    tests_end(); 
+    tests_end();
     return 0;
 }

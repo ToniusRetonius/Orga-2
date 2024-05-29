@@ -1,55 +1,60 @@
-section .data
-%define OFFSET 16
 
 section .text
 
+;section .rodata:
+;primero: db 0
+;segundo: db 1
+;tercero: db 2
+;cuarto: db 3
 global dot_product_asm
 
+; uint32_t dot_product_asm(uint16_t *p, uint16_t *q, uint32_t length);
+; implementacion simd de producto punto
 
 dot_product_asm:
 	push rbp
 	mov rbp, rsp
 
-	xor eax,eax
-	shr edx, 3				; dividimos por 8 a length
+	shr rdx, 3
+	mov eax, 0
 
-	lectura:
-	cmp edx, 0				; condición de ciclo
+loop1:
+	cmp rdx, 0
 	je fin
+	movdqu xmm0, [rdi]
+	movdqu xmm1, [rsi]
+	movdqu xmm2, xmm0
+	movdqu xmm3, xmm1
 
-	xor ecx,ecx
+	pmulhuw xmm0, xmm1 
+	pmullw xmm2, xmm3 ;multiplicalosx
 
-	movdqu xmm0, [rsi]		; lectura de 128 bits unaligned del puntero a p
-	movdqu xmm1, [rdi]		; lectura de 128 bits unaligned del puntero a q
-	movdqu xmm2, xmm0		; tmp p 
+	movdqu xmm4, xmm2
+	punpckhwd xmm2, xmm0
+	punpcklwd xmm4, xmm0
+
+	phaddd xmm2, xmm4
 	
-	pmulhuw xmm0, xmm1 		; mult xmm0, xmm2 guardo en xmm0 las partes high 
-	pmullw xmm1, xmm2   	; mult xmm2 (= old(xmm0)) guardo en xmm1 partes low
+	xor rcx, rcx
 
-	movdqu xmm2, xmm1   	; tmp (= xmm0) partes low
+	extractps ecx, xmm2 , 0
+	add eax, ecx 
 
-	; el problema que tuve : cuando hacemos el unpack los valores del reg dst tienen que ser LOW (pues quedan y addicionan el high a izq) 
+	extractps ecx, xmm2 , 1
+	add eax, ecx 
 
-	punpcklwd xmm2, xmm0	; en xmm0 [a7xb7 : a4xb4] 
-	punpckhwd xmm1, xmm0	; en xmm1 [a3xb3 : a0xb0] 
+	extractps ecx, xmm2 , 2
+	add eax, ecx 
 
-	phaddd xmm2,xmm1 		; suma xmm0, xmm1 los packed double words horizontalmente xmm0 =  (a7xb7 + a6xb6) (a5xb5 + a4xb4) (a3xb3 + a2xb2) (a1xb1 + a0xb0)
+	extractps ecx, xmm2 , 3
+	add eax, ecx 
 	
-	extractps ecx, xmm2, 0	; me traigo la suma de (a1xb1 + a0xb0)
-	add eax, ecx
-	extractps ecx, xmm2, 1	; me traigo la suma de (a3xb3 + a2xb2)
-	add eax,ecx				
-	extractps ecx, xmm2, 2	; me traigo la suma de (a5xb5 + a4xb4)
-	add eax, ecx
-	extractps ecx, xmm2, 3	; me traigo la suma de (a7xb7 + a6xb6)
-	add eax,ecx				
-
-	sub edx, 1				; length - 1
-	add rsi, OFFSET
-	add rdi, OFFSET
-
-	jmp lectura
-
-	fin:
+	sub rdx, 1 
+	add rdi, 16
+	add rsi, 16
+	add r8, 32
+	jmp loop1
+	;guardalos respectivamente
+fin:
 	pop rbp
 	ret
