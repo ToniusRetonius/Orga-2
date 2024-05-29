@@ -2,7 +2,51 @@ Ejercicio 1 -
 ¿A qué nos referimos con modo real y con modo protegido en un procesador Intel? ¿Qué particularidades tiene cada modo?
 
 El modo REAL es un modo de operacion inicial y mas basico  de esta arquitectura. Implementa el entorno de operacion del 8086 
-con alguna extension como utilizar registros de 32 bits, puede reubicar la ubicacion del vector de interrupciones (ya es es accesible desde el modo real el registro IDTR) desde este modo podemos pasar al modo protegido o al de mantenimiento. Este modo es el modo de arranque de cualquier proce IA-32 o Intel64. 
-El modo PROTEGIDO es un modo de operacion del procesador en el que el entorno es mas seguro. Implementa el MULTITASKING (permite la ejecucion de multiples programas simultaneamente mediante la asigncacion de tiempo de cpu y recursos gracias al SCHEDULER del SO ). Implementa un sistema de proteccion de memoria donde se aplican permisos de acceso a cada segmento. Implementa un sistema de anillo de proteccion = Nivel 0 - KERNEL , Nivel 1 - System Services, Nivel 2 - Custom Extensions y el Nivel 3 - Applications.
+puede reubicar la ubicacion del vector de interrupciones (ya es es accesible desde el modo real el registro IDTR) desde este modo podemos pasar al modo protegido o al de mantenimiento. Este modo es el modo de arranque de cualquier proce IA-32 o Intel64. Carece de protecciones de memoria y privilegios y puede direccionar hasta 1 MB de memoria ya que trabaja por defecto a 16 bits.
+El modo PROTEGIDO es un modo de operacion del procesador en el que el entorno es mas seguro. Implementa el MULTITASKING (permite la ejecucion de multiples programas simultaneamente mediante la asigncacion de tiempo de cpu y recursos gracias al SCHEDULER del SO ). Implementa un sistema de proteccion de memoria donde se aplican permisos de acceso a cada segmento. Implementa un sistema de anillo de proteccion = Nivel 0 - KERNEL , Nivel 1 - System Services, Nivel 2 - Custom Extensions y el Nivel 3 - Applications. Para este modo de operación podemos direccionar hasta 4GB. Puede operar con 32 o 64 bits.
 
 Ejercicio 2 -
+¿Por qué debemos hacer el pasaje de modo real a modo protegido? ¿No podríamos simplemente tener un sistema operativo en modo real? ¿Qué desventajas tendría?
+Tenemos que pasar al modo protegido porque ofrece mejores prestaciones. Ya vimos que es más seguro y puede direccionar a mayor cantidad de direcciones, como también utilizar registros más grandes. 
+Podríamos tener uno que opere en modo real sin problemas, no contaríamos con las herramientas de protección y privilegios, no podríamos contar con mucha memoria ya que no podríamos direccionar a ella.
+
+Ejercicio 3 -
+Qué es la GDT? ¿Cómo es el formato de un descriptor de segmento, bit a bit?
+Expliquen para qué sirven los campos Limit, Base, G, P, DPL, S. También puede referirse a la teórica slide 30. volumen 3 de Intel en la sección 3.4.5 Segment Descriptors
+
+Un descriptor de segmento es una estructura de datos en una GDT (Tabla de Descriptores Globales) o LDT (Tabla de Descriptores Locales) que proporciona al procesador información sobre el tamaño y la ubicación de un segmento, así como información de control de acceso y estado. Los descriptores de segmento suelen ser creados por compiladores, enlazadores, cargadores o el sistema operativo, pero no por programas de aplicación.
+
+el descriptor de segmento tiene una serie de atributos :
+    - Direccion base: es la dirección a partir de la cual se despliega en forma continua el segmento.
+    - Límite: es el máximo offset que puede tener un byte direccionable dentro del segmento. (tamaño de segmento - 1)
+    - G (granularidad) : establece la unidad de medida del campo LIMITE ( de BYTES o de a 4Kib)
+    - D / B (Default / Big) : configura el tamaño de los segmentos. Si es default ( D/B = 0) entonces es de 16 bits. Caso contrario de 32.
+    - L : el proce mira este bit en el modo ia32e. si está en 1 es porque el segmento contiene código nativo de 64 bits.
+    - AVL : de available para que el programador lo use a gusto y piacere
+    - P (Present) : si está presente o no en la RAM el segmento.
+    - A (Accedido) : permite al SO contabilizar la cantidad de accesos 
+    - DPL (Descriptor Privilege Level) : el nivel de privilegio que debe tener el segmento que contiene el código que pretende acceder a él.
+    - S (System) : permite definir si se trata de un segmento de sistema o de datos o código
+    - TIPO : un campo de 4 bits dependiente de si se trata de un segmento de sistema o no. (Hay dos tablas que definen los usos si S=0 o S=1)
+Una tabla de descriptores de segmento es un arreglo de descriptores de segmento . Una tabla de descriptores es de longitud variable y puede contener hasta 8192 (2^13) descriptores de 8 bytes. Hay dos tipos de tablas de descriptores:
+
+    La tabla de descriptores globales (GDT).
+    Las tablas de descriptores locales (LDT).
+
+El GDT  es una estructura de datos en el espacio de direcciones lineales. La dirección base lineal y el límite del GDT deben cargarse en el registro GDTR.
+El valor límite para el GDT se expresa en bytes. Al igual que con los segmentos, el valor límite se suma a la dirección base para obtener la dirección del último byte válido. Un valor límite de 0 resulta en exactamente un byte válido. Dado que los descriptores de segmento siempre tienen una longitud de 8 bytes, el límite del GDT siempre debe ser uno menos que un múltiplo integral de ocho (es decir, 8N - 1).
+
+La LDT se encuentra en un segmento de sistema del tipo LDT. El GDT debe contener un descriptor de segmento para el segmento LDT. Si el sistema admite múltiples LDT, cada uno debe tener un selector de segmento y un descriptor de segmento separados en el GDT. El descriptor de segmento para una LDT puede estar ubicado en cualquier lugar del GDT.
+
+Una LDT se accede con su selector de segmento. Para eliminar las traducciones de direcciones al acceder a la LDT, el selector de segmento, la dirección base lineal, el límite y los derechos de acceso de la LDT se almacenan en el registro LDTR.
+
+
+Ejercicio 4 -
+¿Qué combinación de bits tendríamos que usar si queremos especificar un segmento para ejecución y lectura de código? (sección 3.4.5.1 Code- and Data-Segment Descriptor Types del volumen 3)
+Si tenemos un descriptor con S = 1  (descriptores de código y datos) si el bit 11 es 0 => es de código el descriptor, caso contrario de datos. Vamos a tomar entonces el bit 11 = 0. Tenemos que poner los 3 bits del type field que queda, C en 0, R en 1 y A en 0 (code execute/read).  
+
+
+Ejercicio 5 -
+(ver tabla EXCEL)
+
+Ejercicio 6 -
