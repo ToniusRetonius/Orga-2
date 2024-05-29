@@ -3,4 +3,6 @@ Ejercicio 1 -
 
 El modo REAL es un modo de operacion inicial y mas basico  de esta arquitectura. Implementa el entorno de operacion del 8086 
 con alguna extension como utilizar registros de 32 bits, puede reubicar la ubicacion del vector de interrupciones (ya es es accesible desde el modo real el registro IDTR) desde este modo podemos pasar al modo protegido o al de mantenimiento. Este modo es el modo de arranque de cualquier proce IA-32 o Intel64. 
-El modo PROTEGIDO es un modo de operacion del procesador en el que el entorno es mas seguro. Implementa el MULTITASKING (permite la ejecucion de multiples programas simultaneamente mediante la asigncacion de tiempo de cpu y recursos gracias al SCHEDULER del SO ). Implementa un sistema de proteccion de memoria donde se aplican permisos de acceso a cada segmento. Implementa un sistema de anillo de proteccion = Nivel 0 (KERNEL) , Nivel 1 -
+El modo PROTEGIDO es un modo de operacion del procesador en el que el entorno es mas seguro. Implementa el MULTITASKING (permite la ejecucion de multiples programas simultaneamente mediante la asigncacion de tiempo de cpu y recursos gracias al SCHEDULER del SO ). Implementa un sistema de proteccion de memoria donde se aplican permisos de acceso a cada segmento. Implementa un sistema de anillo de proteccion = Nivel 0 - KERNEL , Nivel 1 - System Services, Nivel 2 - Custom Extensions y el Nivel 3 - Applications.
+
+Ejercicio 2 -
