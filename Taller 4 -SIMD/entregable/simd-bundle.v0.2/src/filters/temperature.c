@@ -4,11 +4,9 @@
 
 #include "../simd.h"
 
-void temperature_asm    (unsigned char *src, unsigned char *dst, int width, int height,
-                      int src_row_size, int dst_row_size);
+void temperature_asm    (unsigned char *src, unsigned char *dst, int width, int height,int src_row_size, int dst_row_size);
 
-void temperature_c    (unsigned char *src, unsigned char *dst, int width, int height,
-                      int src_row_size, int dst_row_size);
+void temperature_c    (unsigned char *src, unsigned char *dst, int width, int height,int src_row_size, int dst_row_size);
 
 typedef void (temperature_fn_t) (unsigned char*, unsigned char*, int, int, int, int);
 
