@@ -39,8 +39,98 @@ gdt_entry_t gdt[GDT_COUNT] = {
       de las mismas para definir los descriptores acá. Traten en lo posible de usar las 
       macros allí definidas.
       Tomen el descriptor nulo como ejemplo y definan el resto.
-     */
-    
+    */
+    /* Descriptor de cod 0 */
+    /* offset 0x01  */
+    [GDT_IDX_CODE_0] =
+        {
+            .limit_15_0 = GDT_LIMIT_LOW(GDT_LIMIT_BYTES(FLAT_SEGM_SIZE)),
+            .base_15_0 = GDT_BASE_LOW(0),
+            .base_23_16 = GDT_BASE_MID(0),
+            .type = DESC_TYPE_EXECUTE_READ,
+            .s = 0x01,
+            .dpl = 0x00,
+            .p = 0x01,
+            .limit_19_16 = GDT_LIMIT_HIGH(GDT_LIMIT_BYTES(FLAT_SEGM_SIZE)),
+            .avl = 0x1,
+            .l = 0x0,
+            .db = 0x1,
+            .g = 0x00,
+            .base_31_24 = GDT_BASE_HIGH(0),
+        },
+    /* Descriptor de cod 3 */
+    /* offset 0x02  */
+    [GDT_IDX_CODE_3] =
+        {
+            .limit_15_0 = GDT_LIMIT_LOW(GDT_LIMIT_4KIB(FLAT_SEGM_SIZE)),
+            .base_15_0 = GDT_BASE_LOW(0),
+            .base_23_16 = GDT_BASE_MID(0),
+            .type = DESC_TYPE_EXECUTE_READ,
+            .s = 0x01,
+            .dpl = 0x3,
+            .p = 0x01,
+            .limit_19_16 = GDT_LIMIT_HIGH(GDT_LIMIT_4KIB(FLAT_SEGM_SIZE)),
+            .avl = 0x1,
+            .l = 0x0,
+            .db = 0x1,
+            .g = 0x01,
+            .base_31_24 = GDT_BASE_HIGH(0),
+        },
+
+    /* Descriptor de data 0 */
+    /* offset 0x03  */
+    [GDT_IDX_DATA_0] =
+        {
+            .limit_15_0 = GDT_LIMIT_LOW(GDT_LIMIT_BYTES(FLAT_SEGM_SIZE)) ,
+            .base_15_0 = GDT_BASE_LOW(0),
+            .base_23_16 = GDT_BASE_MID(0) ,
+            .type = 0x2,
+            .s = 0x01,
+            .dpl = 0x0,
+            .p = 0x01,
+            .limit_19_16 = GDT_LIMIT_HIGH(GDT_LIMIT_BYTES(FLAT_SEGM_SIZE)),
+            .avl = 0x1,
+            .l = 0x0,
+            .db = 0x1,
+            .g = 0x00,
+            .base_31_24 = GDT_BASE_HIGH(0),
+        },
+    /* Descriptor de data 3 */
+    /* offset 0x04  */
+    [GDT_IDX_DATA_3] =
+        {
+            .limit_15_0 = GDT_LIMIT_LOW(GDT_LIMIT_4KIB(FLAT_SEGM_SIZE)) ,
+            .base_15_0 = GDT_BASE_LOW(0) ,
+            .base_23_16 = GDT_BASE_MID(0),
+            .type = 0x2,
+            .s = 0x01,
+            .dpl = 0x3,
+            .p = 0x01,
+            .limit_19_16 = GDT_LIMIT_HIGH(GDT_LIMIT_4KIB(FLAT_SEGM_SIZE)),
+            .avl = 0x1,
+            .l = 0x0,
+            .db = 0x1,
+            .g = 0x01,
+            .base_31_24 = GDT_BASE_HIGH(0),
+        },
+    /* Descriptor de video (segm de datos nivel 0) */
+    /* offset 0x05  */
+    [GDT_IDX_VIDEO] =
+        {
+            .limit_15_0 = GDT_LIMIT_LOW(GDT_LIMIT_4KIB(VIDEO_SEGM_SIZE)) ,
+            .base_15_0 = GDT_BASE_LOW(VIDEO) ,
+            .base_23_16 = GDT_BASE_MID(VIDEO),
+            .type = 0x2,
+            .s = 0x01,
+            .dpl = 0x0,
+            .p = 0x01,
+            .limit_19_16 = GDT_LIMIT_HIGH(GDT_LIMIT_4KIB(VIDEO_SEGM_SIZE)),
+            .avl = 0x1,
+            .l = 0x0,
+            .db = 0x1,
+            .g = 0x01,
+            .base_31_24 = GDT_BASE_HIGH(VIDEO),
+        },
 };
 
 // Aca hay una inicializacion estatica de una structura que tiene su primer componente el tamano 

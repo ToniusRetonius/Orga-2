@@ -50,3 +50,20 @@ Ejercicio 5 -
 (ver tabla EXCEL)
 
 Ejercicio 6 -
+En el archivo gdt.h que contiene dos struct : gdt_descriptor_t y gdt_entry_t hay dos variables extern gdt_entry_t gdt[]; y 
+extern gdt_descriptor_t GDT_DESC;
+La primera es el arreglo de descriptores y la segunda es un elemento de tipo descriptor que es elemento de ese arreglo.
+
+Ejercicio 7 -
+
+Ejercicio 8 -
+
+Ejercicio 9 -
+
+Ejercicio 10 -
+
+La instruccion LGDT Carga los valores del operando fuente en el registro de la tabla de descriptores globales (GDTR) o en el registro de la tabla de descriptores de interrupciones (IDTR). El operando fuente especifica una ubicación de memoria de 6 bytes que contiene la dirección base (una dirección lineal) y el límite (tamaño de la tabla en bytes) de la tabla de descriptores globales (GDT) o de la tabla de descriptores de interrupciones (IDT). Si el atributo del tamaño del operando es de 32 bits, se cargan en el registro un límite de 16 bits (los 2 bytes inferiores del operando de datos de 6 bytes) y una dirección base de 32 bits (los 4 bytes superiores del operando de datos). Si el atributo del tamaño del operando es de 16 bits, se cargan un límite de 16 bits (los 2 bytes inferiores) y una dirección base de 24 bits (el tercer, cuarto y quinto byte). Aquí, el byte de orden superior del operando no se usa y el byte de orden superior de la dirección base en el GDTR o IDTR se llena con ceros. (manual intel)
+En el archivo gdt.C tenemos gdt_descriptor_t GDT_DESC = {sizeof(gdt) - 1, (uint32_t)&gdt}; que define el tama;o y la dire de la GDT. esta inicializada est;aticamente alli.
+
+
+

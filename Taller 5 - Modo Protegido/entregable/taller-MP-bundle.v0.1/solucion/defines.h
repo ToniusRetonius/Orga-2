@@ -40,10 +40,10 @@
  * Definirlos a partir de los índices de la GDT, definidos más arriba 
  * Hint: usar operadores "<<" y "|" (shift y or) */
 
-//#define GDT_CODE_0_SEL ??
-//#define GDT_DATA_0_SEL ??
-//#define GDT_CODE_3_SEL ??
-//#define GDT_DATA_3_SEL ??
+#define GDT_CODE_0_SEL (GDT_IDX_CODE_0 << 3)                  // (0000000000001 0 00) index 1 ti = 0 rpl = 00
+#define GDT_DATA_0_SEL (GDT_IDX_DATA_0 << 3)                  // (0000000000011 0 00) index 3 ti = 0 rpl = 00
+#define GDT_CODE_3_SEL (GDT_IDX_CODE_3 << 3 | GDT_IDX_DATA_0) // (0000000000010 0 11) index 3 ti = 0 rpl = 11
+#define GDT_DATA_3_SEL (GDT_IDX_DATA_3 << 3 | GDT_IDX_DATA_0) // (0000000000100 0 11) index 3 ti = 0 rpl = 11
 
 
 // Macros para trabajar con segmentos de la GDT.
@@ -61,14 +61,14 @@
 #define GDT_BASE_HIGH(base) (uint8_t)((((uint32_t)(base)) >> 24) & 0xFF)
 
 /* COMPLETAR - Valores de atributos */ 
-//#define DESC_CODE_DATA ??
-//#define DESC_SYSTEM    ??
-//#define DESC_TYPE_EXECUTE_READ ??
-//#define DESC_TYPE_READ_WRITE   ??
+#define DESC_CODE_DATA 0
+#define DESC_SYSTEM  1   
+#define DESC_TYPE_EXECUTE_READ 10
+#define DESC_TYPE_READ_WRITE 2
 
 /* COMPLETAR - Tamaños de segmentos */ 
-//#define FLAT_SEGM_SIZE   ??
-//#define VIDEO_SEGM_SIZE  ??
+#define FLAT_SEGM_SIZE  0x330FFFFF
+#define VIDEO_SEGM_SIZE  0x1F40
 
 
 /* Direcciones de memoria */

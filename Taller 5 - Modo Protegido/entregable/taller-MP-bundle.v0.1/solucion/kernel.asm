@@ -9,6 +9,11 @@ global start
 
 
 ; COMPLETAR - Agreguen declaraciones extern según vayan necesitando
+; traemos de A20.asm la fn enable
+extern A20_enable
+
+; nos traemos el valor del archivo C : gdt_descriptor_t GDT_DESC = {sizeof(gdt) - 1, (uint32_t)&gdt};
+extern GDT_DESC
 
 ; COMPLETAR - Definan correctamente estas constantes cuando las necesiten
 ;%define CS_RING_0_SEL ??   
@@ -36,7 +41,7 @@ start_pm_len equ    $ - start_pm_msg
 BITS 16
 start:
     ; COMPLETAR - Deshabilitar interrupciones
-
+    cli
 
     ; Cambiar modo de video a 80 X 50
     mov ax, 0003h
@@ -48,11 +53,16 @@ start:
     ; COMPLETAR - Imprimir mensaje de bienvenida - MODO REAL
     ; (revisar las funciones definidas en print.mac y los mensajes se encuentran en la
     ; sección de datos)
+    ; print_text_rm Puntero al mensaje, Longitud del mensaje, Color, Fila, Columna
+    print_text_rm start_rm_msg, start_rm_len, 0xA, 0 , 0
 
     ; COMPLETAR - Habilitar A20
     ; (revisar las funciones definidas en a20.asm)
+    call A20_enable
 
     ; COMPLETAR - Cargar la GDT
+    ; lgdt Load Global/Interrupt Descriptor Table Register (ver Felix C)
+    lgdt [GDT_DESC]
 
     ; COMPLETAR - Setear el bit PE del registro CR0
 
