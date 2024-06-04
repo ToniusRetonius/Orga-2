@@ -78,11 +78,11 @@ void screen_draw_layout(void) {
       // caracter nulo, y atributo = 0 
       // limpiamos la pantalla
       p[f][c].c = ' ';
-      p[f][c].a = 0x0;
+      p[f][c].a = 0xC;
     }
     
   }
   // en 30 x 30 escribimos esto je, de color blanco 
-  print("YOU HAVE BEEN INFECTED BY TONIUS VIRUS ! BYE BYE TUTUCA HEAD", 20, 20, 0xF);
+  print("YOU HAVE BEEN INFECTED BY TONIUS VIRUS ! BYE BYE TUTUCA HEAD", 20, 30, 0xC);
   
 }
