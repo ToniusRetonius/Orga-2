@@ -4,9 +4,7 @@
 ; ==============================================================================
 
 %include "print.mac"
-
 global start
-
 
 ; COMPLETAR - Agreguen declaraciones extern según vayan necesitando
 ; traemos de A20.asm la fn enable
@@ -18,6 +16,13 @@ extern GDT_DESC
 ; para hacer el print de la pantallita traemos de screen.c la fn screen_draw_layout 
 extern screen_draw_layout
 extern screen_draw_box
+
+; tenemos que cargar la IDT, la traemos de idt.c : idt_descriptor_t IDT_DESC = {sizeof(idt) - 1, (uint32_t)&idt};
+extern IDT_DESC
+exter idt_init
+
+; tenemos que inicializar los PICS 
+%include "pic.c"
 
 ; COMPLETAR - Definan correctamente estas constantes cuando las necesiten
 %define CS_RING_0_SEL 0x0008    ; dire code 0 en code segment de 16 bits
@@ -70,7 +75,7 @@ start:
     ; COMPLETAR - Cargar la GDT
     ; lgdt Load Global/Interrupt Descriptor Table Register (ver Felix C)
     lgdt [GDT_DESC]
-    breackpoint:
+    breakpGDT:
     ; COMPLETAR - Setear el bit PE del registro CR0 ( Protection Enable (PE) = 1) 
     ; detalle: solo tocamos ese bit, recordar que sino se ignora o #GP exception
     xor eax, eax
@@ -115,6 +120,14 @@ modo_protegido:
     ; COMPLETAR - Inicializar pantalla
     ; llamamos a la funcion  que hace el print desde screen.c
     call screen_draw_layout
+
+    ; Inicializar IDT y cargarla con lidt
+    call idt_init
+    lidt [IDT_DESC]
+
+    ; Inicializamos los PICS
+
+
 
     ; Ciclar infinitamente 
     mov eax, 0xFFFF

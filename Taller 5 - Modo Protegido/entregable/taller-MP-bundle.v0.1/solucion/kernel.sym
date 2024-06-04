@@ -22,6 +22,7 @@
 0x000013fb A20_enable
 0x000014a1 A20_wait
 0x000014a8 A20_wait2
+0x00001288 breackpoint
 0x00003138 __bss_start
 0x00000017 check_len
 0x00001335 check_msg

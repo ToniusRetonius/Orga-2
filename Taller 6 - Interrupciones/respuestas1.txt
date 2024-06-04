@@ -1,0 +1,12 @@
+Ejercicio 1 -
+
+a) La interrupt gate ( entrada de la IDT) tiene una serie de campos :
+        - Offset [31:16] : es la dire de memoria donde comienza la rutina de atencion 
+        - Segement Selector [31:16] : indica que selector debe utilizarse al ejecutar el codigo de la rutina
+        - P (present) : si esta en memoria la rutina
+        - DPL (Descriptor Privilege Level) : nivel de privilegio 
+        - [12:8] son bits que indican el tipo especifico de la compuerta de interrupcion. El bit D indica si es una compuerta de 32 o 16 bits
+        - [5:7] todos ceros
+        - [4:0] reservados
+
+b) El selector de segmento apropiado es GDT_CODE_0_SEL. Pues es codigo con privilegio de Kernel. Para el atributo [12:8] tenemos que setear el bit-11 (D = 1) para Gate Size de 32 bits
