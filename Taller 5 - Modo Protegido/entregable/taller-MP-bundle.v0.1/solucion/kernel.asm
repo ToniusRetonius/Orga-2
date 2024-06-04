@@ -15,6 +15,10 @@ extern A20_enable
 ; nos traemos el valor del archivo C : gdt_descriptor_t GDT_DESC = {sizeof(gdt) - 1, (uint32_t)&gdt};
 extern GDT_DESC
 
+; para hacer el print de la pantallita traemos de screen.c la fn screen_draw_layout 
+extern screen_draw_layout
+extern screen_draw_box
+
 ; COMPLETAR - Definan correctamente estas constantes cuando las necesiten
 %define CS_RING_0_SEL 0x0008    ; dire code 0 en code segment de 16 bits
 %define DS_RING_0_SEL 0x0018    ; dire data 0 para todo registro de segmento de 16 bits
@@ -55,7 +59,9 @@ start:
     ; sección de datos)
     ; print_text_rm Puntero al mensaje, Longitud del mensaje, Color, Fila, Columna
     ; ver macro 'Iniciando Kernel en Modo Real'
-    print_text_rm start_rm_msg, start_rm_len, 0xA, 0 , 0
+    ; Solo funciona en MODO REAL.
+    ; TODOS los parámetros son de 16 BITS.
+    print_text_rm start_rm_msg, start_rm_len, 0x0F, 0 , 0
 
     ; COMPLETAR - Habilitar A20
     ; (revisar las funciones definidas en a20.asm)
@@ -100,16 +106,16 @@ modo_protegido:
     mov ebp, 0x25000
 
     ; COMPLETAR - Imprimir mensaje de bienvenida - MODO PROTEGIDO
-    ; print_text_rm Puntero al mensaje, Longitud del mensaje, Color, Fila, Columna
+    ; print_text_pm Puntero al mensaje, Longitud del mensaje, Color, Fila, Columna
     ; ver macro 'Iniciando Kernel en Modo Protegido'
-    print_text_rm start_pm_msg, start_pm_len, 0xA, 0 , 0
+    ; Solo funciona en MODO PROTEGIDO.
+    ;;* TODOS los parámetros son de 32 BITS.
+    print_text_pm start_pm_msg, start_pm_len, 0x01, 0 , 0
 
     ; COMPLETAR - Inicializar pantalla
-    ; llamamos a la funcion 
+    ; llamamos a la funcion  que hace el print desde screen.c
+    call screen_draw_layout
 
-
-    
-   
     ; Ciclar infinitamente 
     mov eax, 0xFFFF
     mov ebx, 0xFFFF

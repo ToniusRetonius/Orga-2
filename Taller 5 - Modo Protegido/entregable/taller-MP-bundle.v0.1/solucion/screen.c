@@ -22,8 +22,7 @@ void print(const char* text, uint32_t x, uint32_t y, uint16_t attr) {
   }
 }
 
-void print_dec(uint32_t numero, uint32_t size, uint32_t x, uint32_t y,
-               uint16_t attr) {
+void print_dec(uint32_t numero, uint32_t size, uint32_t x, uint32_t y, uint16_t attr) {
   ca(*p)[VIDEO_COLS] = (ca(*)[VIDEO_COLS])VIDEO; 
   uint32_t i;
   uint8_t letras[16] = "0123456789";
@@ -36,8 +35,7 @@ void print_dec(uint32_t numero, uint32_t size, uint32_t x, uint32_t y,
   }
 }
 
-void print_hex(uint32_t numero, int32_t size, uint32_t x, uint32_t y,
-               uint16_t attr) {
+void print_hex(uint32_t numero, int32_t size, uint32_t x, uint32_t y, uint16_t attr) {
   ca(*p)[VIDEO_COLS] = (ca(*)[VIDEO_COLS])VIDEO; 
   int32_t i;
   uint8_t hexa[8];
@@ -56,8 +54,7 @@ void print_hex(uint32_t numero, int32_t size, uint32_t x, uint32_t y,
   }
 }
 
-void screen_draw_box(uint32_t fInit, uint32_t cInit, uint32_t fSize,
-                     uint32_t cSize, uint8_t character, uint8_t attr) {
+void screen_draw_box(uint32_t fInit, uint32_t cInit, uint32_t fSize, uint32_t cSize, uint8_t character, uint8_t attr) {
   ca(*p)[VIDEO_COLS] = (ca(*)[VIDEO_COLS])VIDEO;
   uint32_t f;
   uint32_t c;
@@ -70,4 +67,22 @@ void screen_draw_box(uint32_t fInit, uint32_t cInit, uint32_t fSize,
 }
 
 void screen_draw_layout(void) {
+  ca(*p)[VIDEO_COLS] = (ca(*)[VIDEO_COLS])VIDEO;
+  // hacemos el casteo del buffer a un puntero de matriz para que cada fila tenga columna-elementos
+  for (uint32_t f = 0; f < VIDEO_FILS; f++)
+  {
+    // por cada fila 
+    for (uint32_t c = 0; c < VIDEO_COLS; c++)
+    {
+      // por cada columna
+      // caracter nulo, y atributo = 0 
+      // limpiamos la pantalla
+      p[f][c].c = ' ';
+      p[f][c].a = 0x0;
+    }
+    
+  }
+  // en 30 x 30 escribimos esto je, de color blanco 
+  print("YOU HAVE BEEN INFECTED BY TONIUS VIRUS ! BYE BYE TUTUCA HEAD", 20, 20, 0xF);
+  
 }

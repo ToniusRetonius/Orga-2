@@ -1,0 +1,77 @@
+Ejercicio 20 -
+La pantalla es un array de 50 filas * 80 columnas donde una celda de pantalla es representada por 2 bytes. Dicho esto el tama;o de la pantalla en bytes es 50 * 80 * 2 bytes (en hexa 0x1F40).
+Es el segmento de video
+
+Ejercicio 21 -
+Si miramos el screen.h vemos que 
+    /* Definicion de la pantalla */
+    #define VIDEO_FILS 50
+    #define VIDEO_COLS 80
+    /* Estructura de para acceder a memoria de video */
+    // Cada posicion de memoria tiene 2 bytes, c es el caracter y a los atributos 
+    typedef struct ca_s {
+    uint8_t c;
+    uint8_t a;
+    } ca;
+
+screen_draw_box
+    (uint32_t fInit, uint32_t cInit, uint32_t fSize, uint32_t cSize, uint8_t character, uint8_t attr) 
+    // recibe como parametros inicio fila, inicio columna, tama;o de fila, tama;o de columna, un char, y un atributo que responde a la Estructura ca (caracter - atributo de 1 byte cada uno)
+{
+  ca(*p)[VIDEO_COLS] = (ca(*)[VIDEO_COLS])VIDEO;
+  // esto es una conversion de la direccion de memoria VIDEO a un puntero de tipo ca que tiene VIDEO_COLS- elementos en cada fila y se crea el puntero a partir de dicha conversion. 
+  // tipo_de_dato (*nombre_del_puntero)[numero_de_columnas]; declaracion en C de puntero a matrices
+
+
+  uint32_t f;
+  // filas
+  uint32_t c;
+  // columnas
+
+  for (f = fInit; f < fInit + fSize; f++) {
+    for (c = cInit; c < cInit + cSize; c++) {
+      p[f][c].c = character;
+      p[f][c].a = attr;
+    }
+  }
+  // como se trata de una matriz pone el c un char y el a el atributo 
+}
+
+Esta funcion entonces lo que hace es tomar el buffer de video como una matriz y con el formato char-attribute pone valores para dibujar una pantalla del tama;o especificado en pantalla. Para acceder usa ese casting del buffer a puntero a matriz. Usa la estructura CA como dijimos anteriormente
+
+Ejercicio 22 - 
+
+Ejercicio 23 -
+convencion de TEXT_UI
+
+Each character has a colour byte. This colour byte is split up in forecolour and backcolour.
+The layout of the byte, using the standard colour palette:
+
+Bit 76543210
+    ||||||||
+    |||||^^^-fore colour
+    ||||^----fore colour bright bit
+    |^^^-----back colour
+    ^--------back colour bright bit OR enables blinking Text
+
+Its easy to write to BL, the Colour Nibbles(4Bit), in a Hex Value.
+For Example:
+
+0x01 sets the background to black and the fore colour to blue
+
+0x10 sets the background to blue and the fore colour to black 
+
+0x11 sets both to blue.
+
+The default display colours set by the BIOS upon booting are 0x0F: 0 (black) for the background and 7 (White) + 8 (Bright) for the foreground.
+
+In text mode 0, the following standard colour palette is available for use. You can change this palette with VGA commands.
+Colour 	      Number + bright bit   Name
+Black 	      0+8=8 		            Dark Gray
+Blue 	        1+8=9 		            Light Blue
+Green 	      2+8=A 		            Light Green
+Cyan 	        3+8=B 		            Light Cyan
+Red 	        4+8=C 		            Light Red
+Magenta 	    5+8=D 		            Light Magenta
+Brown 	      6+8=E 		            Yellow
+Light Gray 	  7+8=F 		            White 
