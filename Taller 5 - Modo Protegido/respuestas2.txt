@@ -1,0 +1,58 @@
+
+Ejercicio 13 - 
+Para pasar a modo Protegido necesitamos como indica la lista preparar ciertas cosas como :deshabilitar las interrupciones, completar la gdt en memoria, cargar su dire en el registo GDTR, habilitarle al proce el modo protegido, hacer el far jump al segmento de codigo nivel 0, cargar los selectores de segmento restantes.
+El manual aconseja lo siguiente: 
+Te recomendamos que sigas estos pasos:
+
+    1. Deshabilita las interrupciones. Una instrucción de la CLI desactiva las interrupciones de hardware enmascarables. Las interrupciones NMI se pueden deshabilitar con circuitos externos. (El software debe garantizar que no se generen excepciones o interrupciones durante la operación de cambio de modo).
+
+    2. Ejecuta la instrucción LGDT para cargar el registro GDTR con la dirección base de la GDT.
+    
+    3. Ejecuta una instrucción MOV CR0 que establezca el flag PE (y opcionalmente el flag PG) en el registro de control CR0.
+    
+    4. Inmediatamente después de la instrucción MOV CR0, ejecuta una instrucción JMP lejano o CALL lejano. (Esta operación es típicamente un salto lejano o una llamada a la siguiente instrucción en la secuencia de instrucciones).
+    
+    5. La instrucción JMP o CALL inmediatamente después de la instrucción MOV CR0 cambia el flujo de ejecución y serializa el procesador.
+    
+    6. Si se habilita la paginación, el código para la instrucción MOV CR0 y la instrucción JMP o CALL debe provenir de una página que esté mapeada por identidad (es decir, la dirección lineal antes del salto es la misma que la dirección física después de habilitar la paginación y el modo protegido). La instrucción de destino para la instrucción JMP o CALL no necesita estar mapeada por identidad.
+    
+    7. Si se va a utilizar una tabla de descriptores local, ejecuta la instrucción LLDT para cargar el selector de segmento para la LDT en el registro LDTR.
+    
+    8. Ejecuta la instrucción LTR para cargar el registro de tarea con un selector de segmento para la tarea inicial en modo protegido o para un área de memoria escribible que se pueda utilizar para almacenar información del TSS en un cambio de tarea.
+    
+    9. Después de entrar en el modo protegido, los registros de segmento continúan manteniendo el contenido que tenían en el modo de dirección real. La instrucción JMP o CALL en el paso 4 reinicia el registro CS. Realiza una de las siguientes operaciones para actualizar el contenido de los registros de segmento restantes.
+    — Recarga los registros de segmento DS, SS, ES, FS y GS. Si los registros ES, FS y/o GS no se van a usar, cárgalos con un selector nulo.
+    — Realiza una instrucción JMP o CALL a una nueva tarea, lo que reinicia automáticamente los valores de los registros de segmento y ramifica a un nuevo segmento de código.
+    
+    10. Ejecuta la instrucción LIDT para cargar el registro IDTR con la dirección y el límite del IDT en modo protegido.
+    
+    11. Ejecuta la instrucción STI para habilitar las interrupciones de hardware enmascarables y realiza la operación de hardware necesaria para habilitar las interrupciones NMI.
+
+Pueden ocurrir fallos aleatorios si existen otras instrucciones entre los pasos 3 y 4 anteriores. Los fallos serán fácilmente visibles en algunas situaciones, como cuando se insertan instrucciones que hacen referencia a la memoria entre los pasos 3 y 4 mientras se está en modo de gestión del sistema.
+
+Los registros de control (CR0, CR1, CR2, CR4) determinan el modo de operacion del proce y las caracteristicas del proceso que se este ejecutando. Estos registros pueden ser leidos y escritos usando MOV. En modo protegido solo con privilegio de Kernel. Tienen algunos bits reservados que deben ser ceros. EN CRO ej [31:0] si queremos escribir los reservados se ignora. En caso de querer escribir los CR0[63:32] resulta en una general-protection exception #GP(0).
+CR0 contiene flags de control del sistema que controlan el modo de operacion y el estado del procesador.
+Detalles sobre CR0 : 
+    - bit 0 : PE :  Protection Enable
+    - bit 1 : MP :  Monitor Coprocessor
+    - bit 2 : EM :  Emulation 
+    - bit 3 : TS :  Task Switched
+    - bit 4 : ET :  Extension Type
+    - bit 5 : NE :  Numeric error
+    - bit 6 - 15 : reservados  
+    - bit 16 : WP :  Write protect
+    - bit 17 : reservado   
+    - bit 18 : AM :  Alignment mask
+    - bit 19 - 28 : reservados  
+    - bit 29 : NW :  Not Write-through
+    - bit 30 : CD :  Cache disable
+    - bit 31 : PG :  Habilita paginacion (PG = 1) o desabilita
+
+Ejercicio 15 -
+Una instrucción CALL lejano o JMP lejano solo puede acceder a un descriptor de segmento para un segmento de código conforme, segmento de código no conforme, puerta de llamada, puerta de tarea o TSS.
+Durante ciertas operaciones internas — Por ejemplo:
+— En una llamada lejana o salto lejano (ejecutado con una instrucción CALL lejano o JMP lejano), el procesador determina el tipo de transferencia de control que se va a realizar (llamada o salto a otro segmento de código, una llamada o salto a través de una puerta, o un cambio de tarea) verificando el campo de tipo en el descriptor del segmento (o puerta) señalado por el selector del segmento (o puerta) dado como operando en la instrucción CALL o JMP. Si el tipo de descriptor es para un segmento de código o puerta de llamada, se indica una llamada o salto a otro segmento de código; si el tipo de descriptor es para un TSS o puerta de tarea, se indica un cambio de tarea
+Que usarian como selector de segmento?
+jmp CS_RING_0 
+Intuitivamente pensamos que el sera el de codigo nivel 0 - Kernel
+Tenemos que ir a la gdt a buscarlo?

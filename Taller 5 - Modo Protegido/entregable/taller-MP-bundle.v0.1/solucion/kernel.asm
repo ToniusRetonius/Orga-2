@@ -16,8 +16,8 @@ extern A20_enable
 extern GDT_DESC
 
 ; COMPLETAR - Definan correctamente estas constantes cuando las necesiten
-;%define CS_RING_0_SEL ??   
-;%define DS_RING_0_SEL ??   
+%define CS_RING_0_SEL 0x0008    ; dire code 0 en code segment de 16 bits
+%define DS_RING_0_SEL 0x0018    ; dire data 0 para todo registro de segmento de 16 bits
 
 
 BITS 16
@@ -54,6 +54,7 @@ start:
     ; (revisar las funciones definidas en print.mac y los mensajes se encuentran en la
     ; sección de datos)
     ; print_text_rm Puntero al mensaje, Longitud del mensaje, Color, Fila, Columna
+    ; ver macro 'Iniciando Kernel en Modo Real'
     print_text_rm start_rm_msg, start_rm_len, 0xA, 0 , 0
 
     ; COMPLETAR - Habilitar A20
@@ -64,23 +65,49 @@ start:
     ; lgdt Load Global/Interrupt Descriptor Table Register (ver Felix C)
     lgdt [GDT_DESC]
 
-    ; COMPLETAR - Setear el bit PE del registro CR0
+    ; COMPLETAR - Setear el bit PE del registro CR0 ( Protection Enable (PE) = 1) 
+    ; detalle: solo tocamos ese bit, recordar que sino se ignora o #GP exception
+    xor eax, eax
+    mov eax, cr0
+    or eax, 1
+    mov cr0, eax
 
     ; COMPLETAR - Saltar a modo protegido (far jump)
     ; (recuerden que un far jmp se especifica como jmp CS_selector:address)
     ; Pueden usar la constante CS_RING_0_SEL definida en este archivo
+    ; como llegamos al valor del GDT_CODE_0_SEL ? 
+    ; tenemos que cargar CS con ese valor?
+    ; : que direccion ponemos? modo_protegido?
+    jmp CS_RING_0_SEL:modo_protegido
 
 BITS 32
 modo_protegido:
     ; COMPLETAR - A partir de aca, todo el codigo se va a ejectutar en modo protegido
     ; Establecer selectores de segmentos DS, ES, GS, FS y SS en el segmento de datos de nivel 0
     ; Pueden usar la constante DS_RING_0_SEL definida en este archivo
+    xor eax,eax
+    mov eax, DS_RING_0_SEL
+    mov ds, eax
+    mov es, eax
+    mov gs, eax
+    mov fs, eax
+    mov ss, eax
 
     ; COMPLETAR - Establecer el tope y la base de la pila
+    ; modificamos esp, ebp
+    ; dire = 0x25000
+    mov esp, 0x25000
+    mov ebp, 0x25000
 
     ; COMPLETAR - Imprimir mensaje de bienvenida - MODO PROTEGIDO
+    ; print_text_rm Puntero al mensaje, Longitud del mensaje, Color, Fila, Columna
+    ; ver macro 'Iniciando Kernel en Modo Protegido'
+    print_text_rm start_pm_msg, start_pm_len, 0xA, 0 , 0
 
     ; COMPLETAR - Inicializar pantalla
+    ; llamamos a la funcion 
+
+
     
    
     ; Ciclar infinitamente 

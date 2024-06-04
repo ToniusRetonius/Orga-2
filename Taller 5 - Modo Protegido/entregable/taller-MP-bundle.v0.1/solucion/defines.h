@@ -40,10 +40,10 @@
  * Definirlos a partir de los índices de la GDT, definidos más arriba 
  * Hint: usar operadores "<<" y "|" (shift y or) */
 
-#define GDT_CODE_0_SEL (GDT_IDX_CODE_0 << 3)                  // (0000000000001 0 00) index 1 ti = 0 rpl = 00
-#define GDT_DATA_0_SEL (GDT_IDX_DATA_0 << 3)                  // (0000000000011 0 00) index 3 ti = 0 rpl = 00
-#define GDT_CODE_3_SEL (GDT_IDX_CODE_3 << 3 | GDT_IDX_DATA_0) // (0000000000010 0 11) index 3 ti = 0 rpl = 11
-#define GDT_DATA_3_SEL (GDT_IDX_DATA_3 << 3 | GDT_IDX_DATA_0) // (0000000000100 0 11) index 3 ti = 0 rpl = 11
+#define GDT_CODE_0_SEL 8                    // (0000000000001 0 00) index 1 ti = 0 rpl = 00
+#define GDT_DATA_0_SEL 24                   // (0000000000011 0 00) index 3 ti = 0 rpl = 00
+#define GDT_CODE_3_SEL 19                   // (0000000000010 0 11) index 3 ti = 0 rpl = 11
+#define GDT_DATA_3_SEL 27                   // (0000000000011 0 11) index 3 ti = 0 rpl = 11
 
 
 // Macros para trabajar con segmentos de la GDT.
