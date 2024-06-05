@@ -134,13 +134,13 @@ modo_protegido:
     sti                     ; habilita interruciones
 
     int 32
-    bpointRELOJ:
+    bpointRELOJ:            ; no se mueve
     int 33
     bpointTECLADO:
     int 88
-    bpointINT88:
+    bpointINT88:            ; #GP que hacemos?
     int 98
-    bpointINT98:
+    bpointINT98:            ; #GP que hacemos?
 
     ; Ciclar infinitamente 
     mov eax, 0xFFFF
