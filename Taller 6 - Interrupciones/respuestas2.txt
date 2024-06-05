@@ -1,0 +1,87 @@
+EJercicio 4 -
+Algo de teoria para entender que estamos haciendo en el ejercicio de completar pic_reset()
+Esta funcion debe remapear las interrupciones tanto del PIC1 como del PIC2 (las del primero a partir de la 32 (0x20) y el segundo a partir de la 40 (0x28)) 
+(ver imagen  = CONEXION DE PIC 8259 )
+
+ICW1 (Initialization Command Word 1):
+
+    Este paso inicia la secuencia de inicialización del PIC.
+    Enviamos el byte 0x11 (00010001 en binario) a los puertos de control de ambos PICs. Este byte indica al PIC que se va a realizar una secuencia de inicialización y que se utilizarán ciertas configuraciones específicas.
+
+ICW2 (Initialization Command Word 2):
+
+    Este paso configura el vector de interrupción base.
+    Cada PIC necesita saber en qué parte de la tabla de vectores de interrupción del procesador debe colocar sus interrupciones (IDT). Esto se especifica mediante el segundo byte enviado.
+    En este caso, configuramos el PIC1 para manejar interrupciones desde el vector 0x20 (32 en decimal) y el PIC2 para manejar interrupciones desde el vector 0x28 (40 en decimal). Esto significa que el PIC1 manejará interrupciones del 0 al 7, y el PIC2 manejará interrupciones del 8 al 15. (VER FOTO PROTECTED MODE INTERRUPT TABLE)
+
+ICW3 (Initialization Command Word 3):
+
+    Este paso configura la conexión maestro/esclavo entre los PICs.
+    Como los PICs pueden estar conectados en cascada (el PIC2 se conecta al PIC1), necesitamos informar al PIC1 acerca de la conexión del PIC2 y en qué línea de interrupción (IRQ) está conectado.
+    En este caso, configuramos el PIC1 para que sepa que el PIC2 está conectado en su línea de interrupción número 2 (IRQ2).
+    Esto es necesario para evitar conflictos cuando el PIC2 necesita enviar interrupciones al PIC1.
+    0x04 se escribe en el puerto de datos del PIC1 para establecer que el PIC1 tiene un esclavo en el IRQ2. Y luego, 0x02 se escribe en el puerto de datos del PIC2 para indicar que es el esclavo conectado al IRQ2 del maestro PIC1.
+
+ICW4 (Initialization Command Word 4):
+
+    Este paso configura el modo de funcionamiento del PIC.
+    Especificamos si queremos que el PIC funcione en modo 8086/88 (modo compatible con la arquitectura x86) y si queremos habilitar o deshabilitar la auto-EOI (End of Interrupt) para el manejo automático de las EOIs.
+    En este caso, configuramos ambos PICs para funcionar en el modo 8086/88 (modo compatible con la arquitectura x86) y deshabilitamos la auto-EOI (usando 0x01).
+    El byte enviado durante la configuración del ICW4 del PIC se utiliza para especificar el modo de funcionamiento del PIC. En este caso, se envía el valor 0x01 a ambos PICs, lo que configura el modo de funcionamiento en "Modo 8086/88" (también conocido como "Modo x86"), sin habilitar la función de Auto EOI (End of Interrupt).
+
+    El significado de los bits del byte enviado:
+
+    Bit 0 (SNGL): Este bit, cuando está en 1, selecciona el modo de operación de un solo PIC. Sin embargo, en la mayoría de los sistemas, este bit se mantiene en 0 para habilitar el modo cascada, lo que permite la conexión de múltiples PICs.
+    Bit 1 (ADI): Este bit, cuando está en 1, indica la habilitación de la identificación automática del esclavo. Sin embargo, suele mantenerse en 0 en la mayoría de los sistemas, ya que el modo de identificación automática no se utiliza comúnmente.
+    Bit 2 (uPM): Este bit, cuando está en 1, selecciona el modo de procesador de uso múltiple, pero nuevamente, en la mayoría de los sistemas, se mantiene en 0 para habilitar el modo de procesador único.
+    Bit 3 (AEOI): Este bit controla la función de Auto EOI (End of Interrupt). Cuando está en 1, habilita la función de Auto EOI, que automáticamente envía una señal de EOI al PIC después de que el procesador ha completado el manejo de la interrupción. Cuando está en 0, deshabilita la función de Auto EOI, lo que significa que el procesador debe enviar manualmente una señal de EOI al PIC después de manejar cada interrupción.
+    Al configurar este byte con el valor 0x01, se selecciona el Modo 8086/88 y se deshabilita la función de Auto EOI en ambos PICs. Esto asegura que el PIC funcione de manera compatible con la arquitectura x86 y que el procesador tenga el control total sobre el final de cada interrupción, enviando manualmente una señal de EOI cuando sea necesario.
+
+Ejercicio 6 -
+PUSHA/PUSHAD — Push All General-Purpose Registers
+
+Empuja el contenido de los registros de propósito general a la pila. Los registros se almacenan en la pila en el siguiente orden: EAX, ECX, EDX, EBX, ESP (valor original), EBP, ESI y EDI (si el atributo de tamaño del operando actual es de 32 bits) y AX, CX, DX, BX, SP (valor original), BP, SI y DI (si el atributo de tamaño del operando es de 16 bits). Estas instrucciones realizan la operación inversa de las instrucciones POPA/POPAD. El valor empujado para el registro ESP o SP es su valor antes de empujar el primer registro (ver la sección "Operación" a continuación).
+
+Los mnemónicos PUSHA (empujar todo) y PUSHAD (empujar todo doble) hacen referencia al mismo código de operación. La instrucción PUSHA está destinada para su uso cuando el atributo de tamaño del operando es de 16 y la instrucción PUSHAD para cuando el atributo de tamaño es de 32. Algunos ensambladores pueden forzar el tamaño del operando a 16 cuando se usa PUSHA y a 32 cuando se usa PUSHAD. Otros pueden tratar estos mnemónicos como sinónimos (PUSHA/PUSHAD) y utilizar la configuración actual del atributo de tamaño del operando para determinar el tamaño de los valores a empujar desde la pila, independientemente del mnemónico utilizado.
+
+En el modo de dirección real, si el registro ESP o SP es 1, 3 o 5 cuando se ejecuta PUSHA/PUSHAD: se genera una excepción #SS pero no se entrega (el error de pila informado evita la entrega de #SS). A continuación, el procesador genera una excepción #DF y entra en un estado de apagado como se describe en la discusión #DF en el Capítulo 6 del Manual del Desarrollador de Software de Arquitecturas Intel® 64 y IA-32, Volumen 3A.
+
+Esta instrucción se ejecuta como se describe en el modo de compatibilidad y en el modo heredado. No es válida en el modo de 64 bits.
+
+POPA/POPAD — Pop All General-Purpose Registers
+
+Extrae doble palabras (POPAD) o palabras (POPA) de la pila hacia los registros de propósito general. Los registros se cargan en el siguiente orden: EDI, ESI, EBP, EBX, EDX, ECX y EAX (si el atributo de tamaño del operando es de 32 bits) y DI, SI, BP, BX, DX, CX y AX (si el atributo de tamaño del operando es de 16 bits). Estas instrucciones invierten la operación de las instrucciones PUSHA/PUSHAD. El valor en la pila para el registro ESP o SP se ignora. En su lugar, el registro ESP o SP se incrementa después de cargar cada registro.
+
+Los mnemónicos POPA (pop all) y POPAD (pop all double) hacen referencia al mismo código de operación. La instrucción POPA está destinada a su uso cuando el atributo de tamaño del operando es de 16 y la instrucción POPAD para cuando el atributo de tamaño del operando es de 32. Algunos ensambladores pueden forzar el tamaño del operando a 16 cuando se usa POPA y a 32 cuando se usa POPAD (usando el prefijo de anulación de tamaño de operando [66H] si es necesario). Otros pueden tratar estos mnemónicos como sinónimos (POPA/POPAD) y utilizar la configuración actual del atributo de tamaño del operando para determinar el tamaño de los valores a extraer de la pila, independientemente del mnemónico utilizado. (La bandera D en el descriptor de segmento del segmento de código actual determina el atributo de tamaño del operando.)
+
+Esta instrucción se ejecuta como se describe en los modos no de 64 bits. No es válida en el modo de 64 bits.
+
+IRET/IRETD/IRETQ — Interrupt Return
+
+Retorna el control del programa desde un manejador de excepciones o interrupciones a un programa o procedimiento que fue interrumpido por una excepción, una interrupción externa o una interrupción generada por software. Estas instrucciones también se utilizan para realizar un retorno desde una tarea anidada. (Una tarea anidada se crea cuando se utiliza una instrucción CALL para iniciar un cambio de tarea o cuando una interrupción o excepción causa un cambio de tarea a un manejador de interrupción o excepción). Consulte la sección titulada "Vinculación de Tareas" en el Capítulo 8 del Manual del Desarrollador de Software de Arquitecturas Intel® 64 e IA-32, Volumen 3A.
+
+IRET e IRETD son mnemónicos para el mismo código de operación. El mnemónico IRETD (retorno de interrupción doble) está destinado para su uso al regresar de una interrupción cuando se utiliza el tamaño de operando de 32 bits; sin embargo, la mayoría de los ensambladores utilizan el mnemónico IRET de manera intercambiable para ambos tamaños de operando.
+
+En el Modo de Dirección Real, la instrucción IRET realiza un retorno lejano al programa o procedimiento interrumpido. Durante esta operación, el procesador extrae de la pila el puntero de instrucción de retorno, el selector de segmento de código de retorno y la imagen EFLAGS, y los carga en los registros EIP, CS y EFLAGS, respectivamente, y luego reanuda la ejecución del programa o procedimiento interrumpido.
+
+En el Modo Protegido, la acción de la instrucción IRET depende de la configuración de las banderas NT (tarea anidada) y VM en el registro EFLAGS y la bandera VM en la imagen EFLAGS almacenada en la pila actual. Dependiendo de la configuración de estas banderas, el procesador realiza los siguientes tipos de retornos de interrupción:
+
+    Retorno desde modo virtual-8086.
+    Retorno a modo virtual-8086.
+    Retorno de nivel de privilegio intra.
+    Retorno de nivel de privilegio inter.
+    Retorno de tarea anidada (cambio de tarea).
+
+Si la bandera NT (registro EFLAGS) está despejada, la instrucción IRET realiza un retorno lejano del procedimiento de interrupción, sin un cambio de tarea. El segmento de código al que se retorna debe ser igual o menos privilegiado que la rutina del manejador de interrupciones (como indica el campo RPL del selector de segmento de código extraído de la pila).
+
+Al igual que con un retorno de interrupción en modo de dirección real, la instrucción IRET extrae de la pila el puntero de instrucción de retorno, el selector de segmento de código de retorno y la imagen EFLAGS, y los carga en los registros EIP, CS y EFLAGS, respectivamente, y luego reanuda la ejecución del programa o procedimiento interrumpido. Si el retorno es a otro nivel de privilegio, la instrucción IRET también extrae de la pila el puntero de pila y SS, antes de reanudar la ejecución del programa. Si el retorno es a modo virtual-8086, el procesador también extrae de la pila los registros de segmento de datos.
+
+Si la bandera NT está configurada, la instrucción IRET realiza un cambio de tarea (retorno) desde una tarea anidada (una tarea llamada con una instrucción CALL, una interrupción o una excepción) de regreso a la tarea que llamó o que fue interrumpida. El estado actualizado de la tarea que ejecuta la instrucción IRET se guarda en su TSS. Si la tarea es reingresada más tarde, se ejecuta el código que sigue a la instrucción IRET.
+
+Si la bandera NT está configurada y el procesador está en modo IA-32e, la instrucción IRET provoca una excepción de protección general.
+
+Si las interrupciones no enmascarables (NMIs) están bloqueadas (consulte la Sección 6.7.1, "Manejo de Múltiples NMIs" en el Manual del Desarrollador de Software de Arquitecturas Intel® 64 e IA-32, Volumen 3A), la ejecución de la instrucción IRET desbloquea las NMIs.
+
+Este desbloqueo ocurre incluso si la instrucción causa una falla. En tal caso, las NMIs se desenmascaran antes de que se invoque el manejador de excepciones.
+
+En el modo de 64 bits, el tamaño de operación predeterminado de la instrucción es de 32 bits. El uso del prefijo REX.W promueve la operación a 64 bits (IRETQ)

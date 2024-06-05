@@ -86,7 +86,7 @@ void idt_init() {
 
   // COMPLETAR: Interrupciones de reloj y teclado
   IDT_ENTRY0(32);   // en isr.h void _isr32(); // clock codigo privilegiado (kernel)
-  IDT_ENTRY3(33);   // en isr.h void _isr33(); // teclado codigo no privilegiado (usuario)
+  IDT_ENTRY0(33);   // en isr.h void _isr33(); // teclado es codigo no privilegiado ? (usuario)
 
   // COMPLETAR: Syscalls
   IDT_ENTRY3(88);

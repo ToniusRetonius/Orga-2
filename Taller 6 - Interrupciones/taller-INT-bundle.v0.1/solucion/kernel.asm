@@ -19,10 +19,11 @@ extern screen_draw_box
 
 ; tenemos que cargar la IDT, la traemos de idt.c : idt_descriptor_t IDT_DESC = {sizeof(idt) - 1, (uint32_t)&idt};
 extern IDT_DESC
-exter idt_init
+extern idt_init
 
 ; tenemos que inicializar los PICS 
-%include "pic.c"
+extern pic_reset
+extern pic_enable
 
 ; COMPLETAR - Definan correctamente estas constantes cuando las necesiten
 %define CS_RING_0_SEL 0x0008    ; dire code 0 en code segment de 16 bits
@@ -75,7 +76,7 @@ start:
     ; COMPLETAR - Cargar la GDT
     ; lgdt Load Global/Interrupt Descriptor Table Register (ver Felix C)
     lgdt [GDT_DESC]
-    breakpGDT:
+    bpointGDT:
     ; COMPLETAR - Setear el bit PE del registro CR0 ( Protection Enable (PE) = 1) 
     ; detalle: solo tocamos ese bit, recordar que sino se ignora o #GP exception
     xor eax, eax
@@ -124,10 +125,22 @@ modo_protegido:
     ; Inicializar IDT y cargarla con lidt
     call idt_init
     lidt [IDT_DESC]
+    bpointIDT:
 
     ; Inicializamos los PICS
+    call pic_reset          ; remapea
+    call pic_enable         ; habilita los pics
+    
+    sti                     ; habilita interruciones
 
-
+    int 32
+    bpointRELOJ:
+    int 33
+    bpointTECLADO:
+    int 88
+    bpointINT88:
+    int 98
+    bpointINT98:
 
     ; Ciclar infinitamente 
     mov eax, 0xFFFF

@@ -122,6 +122,10 @@ ISRNE 20
 global _isr32
 ; COMPLETAR: Implementar la rutina
 _isr32:
+    pushad              ; pushad se guarda todo (EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI)
+    call next_clock     ; lo que nos pide el ej
+    call pic_finish1    ; como se trata de una interrupcion externa hay que avisarle al PIC
+    popad               ; pop
     iret
 
 ;; Rutina de atención del TECLADO
@@ -129,6 +133,11 @@ _isr32:
 global _isr33
 ; COMPLETAR: Implementar la rutina
 _isr33:
+    pushad
+    in al, 0x60             ; le pasamos el puerto a al ()
+    call process_scancode   ;  process_scancode(uint8_t scancode)
+    call pic_finish1        ; le avisamos al pic
+    popad
     iret
 
 
@@ -138,11 +147,19 @@ _isr33:
 global _isr88
 ; COMPLETAR: Implementar la rutina
 _isr88:
+    pushad
+    mov eax, 0x58
+    ; como se trata de una syscall no interviene el pic
+    popad
     iret
 
 global _isr98
 ; COMPLETAR: Implementar la rutina
 _isr98:
+    pushad
+    mov eax, 0x62
+    ; como se trata de una syscall no interviene el pic
+    popad
     iret
 
 ; PushAD Order
