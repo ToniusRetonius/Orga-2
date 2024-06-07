@@ -133,14 +133,8 @@ modo_protegido:
     
     sti                     ; habilita interruciones
 
-    int 32
-    bpointRELOJ:            ; no se mueve
-    int 33
-    bpointTECLADO:
-    int 88
-    bpointINT88:            ; #GP que hacemos?
-    int 98
-    bpointINT98:            ; #GP que hacemos?
+    ; la pregunta es : que pasa con las syscalls?
+    ; por que el teclado funciona una sola vez?
 
     ; Ciclar infinitamente 
     mov eax, 0xFFFF

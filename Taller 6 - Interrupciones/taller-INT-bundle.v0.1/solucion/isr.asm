@@ -135,7 +135,7 @@ global _isr33
 _isr33:
     pushad
     in al, 0x60             ; le pasamos el puerto a al ()
-    call process_scancode   ;  process_scancode(uint8_t scancode)
+    call process_scancode   ; process_scancode(uint8_t scancode)
     call pic_finish1        ; le avisamos al pic
     popad
     iret

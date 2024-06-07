@@ -1,0 +1,54 @@
+Ejercicio 1 -
+En las estructuras de paginacion se pueden definir 2 niveles 3 (usuario) o No-Usuario.
+Esto se define dentro de la entrada del directorio en el bit 2 (U / S) llamado User/Supervisor
+Que tambien se presenta este bit en la entrada de la tabla de paginas donde cada entrada en su bit 2 define User/Supervisor
+
+Ejercicio 2 -
+Se tiene la direccion virtual, 32 bits. Esos se dividen en 3 partes :
+    - [11:0] offset (para hallar la dire fisica dentro de la 4KB Page)
+    - [21:12] indice en la tabla de paginas (Page Table)
+    - [31:22] indice en el directorio de paginas (Page Directory)
+1. Primero tenemos que obtener la direccion de la Page Directory, para ello vemos en CR3:
+    - [2:0] ignored
+    - [3] PWT (Page Write-Through): Deshabilita hacer write-back cuando el procesador modifica el page directory 
+    - [4] PCD (Page Cache Disable): Deshabilita cachear entradas del page directory
+    - [11:5] ignored
+    - [31:12] : Número de la página fı́sica donde está el directorio actual
+De esos 20 bits altos de CR3 [31:12] tenemos que movernos a la base de la Page Directory.
+2. Como vamos a querer leer la entrada, necesitamos el indice. Para ello, miramos en la direccion virtual [31:22] que nos dice este valor. Para capturarlo en limpio lo copiamos y a esa copia le eliminamos los primeros 22 bits (shr 22). Sumamos con el valor de la base para offsetear correctamente y pararnos el la entrada del directorio que nos interesa.
+3. Tenemos que acceder a la Page Table. Para ello necesitamos los 20 bits que nos apuntan a la base de la misma y el offset adecuado para pararnos en la entrada que buscamos.
+Nos quedamos con los primeros 20 bits del valor de la entrada del directorio y el resto en 0 (basta hacerle un and con 0xFFFFF000) para acceder a la Page Table y luego miramos en la direccion virtual [21:12] que es el offset adecuado para mirar la entrada que buscamos en la Page Table. Sumamos y capturamos la entrada de la Page Table.
+4. Queremos ir a la pagina de 4 Kbytes, a su base, de ahi offsetear y obtener la direccion fisica. El primer paso es quedarnos con los 20 bits del valor de la entrada de la Page Table. Para eso la idea es hacer el and con 0xFFFFF000. Y el paso final es sumarle el offset que lo tenemos en la direccion virtual [11:0].  Y finalmente capturamos la direccion fisica.
+
+Ejercicio 3 - 
+Para las entradas de la Page Table, que son de 32 bits, tenemos una serie de atributos:
+    - bit 0 : siempre seteado en 1
+    - bit 1 (R / W) : Read / Write Determina si un proceso puede escribir a la memoria controlada por esta PTE
+    - bit 2 (U / S) : User/Supervisor determina si un proceso en modo usuario puede acceder a la memoria controlada por esta PTE
+    - bit 3  (PWT) : Page Write-Through  Deshabilita hacer write-back al escribir en la página asociada
+    - bit 4  (PCD) : Page Cache Disable Deshabilita cachear los datos de página asociada
+    - bit 5 (A) : Accessed Indica si se accedió a memoria controlada por esta PTE. Lo escribe el procesador al traducir
+    - bit 6 (D) : Dirty Indica si escribió accedió a memoria controlada por esta PTE. Lo escribe el procesador al traducir
+    - bit 7 (PAT): Page Attribute Table Un feature del procesador que no vamos a usar. Permie un control más granular del mecanismo de caché.
+    - bit 8 (G) : Global Marca la traducción como global. Las traducciones globales no se invalidan al cambiar el CR3.
+    - [11:9] ignored
+    - [31:12] La direccion de la pagina de 4KB 
+
+Ejercicio 4 -
+¿Qué sucede si los atributos U/S y R/W del directorio y de la tabla de páginas difieren? ¿Cuáles terminan siendo los atributos de una página determinada en ese caso?
+En caso de que existan diferencias entre los niveles de privilegios entre la entrada del Page Directory y la entrada de la Page Table. Para los casos que coincida R/W se mantendra el privilegio mayor y el tipo de acceso coincidente. 
+Para los casos que el tipo de acceso sea diferente en la Page Directory tendremos que mirar el bit CR0.WP que en caso de ser 0 si es supervisor => tendra acceso Read-Write. En caso de ser 1 se define por el tipo de acceso de la entrada de la page directory y la page table (preguntar ?)
+Para los casos coincidentes de Privilegio de usuario, pesa mas read-only
+
+Ejercicio 5 -
+Suponiendo que el código de la tarea ocupa dos páginas y utilizaremos una página para la pila de la tarea. ¿Cuántas
+páginas hace falta pedir a la unidad de manejo de memoria para el directorio, tablas de páginas y la memoria de una
+tarea?
+• El directorio de páginas: Necesita 4KB (es una página
+fı́sica). Es un array de 1024 entradas. Cada entrada traduce
+los 4MB que le corresponden.
+• Las tablas de páginas: Cada una necesita 4KB (es una
+página fı́sica). Un array de 1024 entradas. Cada entrada
+traduce los 4KB que le corresponden (dentro del bloque de
+4MB dónde la tabla fué referenciada).
+Con esto en mente, tenemos una pagina para el directorio, otra para la tabla y para la tarea tenemos 2 de codigo y una de pila. En total necesitamos 5 paginas

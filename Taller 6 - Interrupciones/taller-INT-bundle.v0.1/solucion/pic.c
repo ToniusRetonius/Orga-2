@@ -47,6 +47,7 @@ void pic_reset() {
   // Modo 8086/88 (Normal EOI), sin Auto EOI
   outb(PIC1_PORT + 1, 0x01); 
   outb(PIC2_PORT + 1, 0x01);
+  // falta algo aca?
 }
 
 void pic_enable() {
