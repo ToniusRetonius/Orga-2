@@ -135,7 +135,9 @@ global _isr33
 _isr33:
     pushad
     in al, 0x60             ; le pasamos el puerto a al ()
+    push eax
     call process_scancode   ; process_scancode(uint8_t scancode)
+    pop eax
     call pic_finish1        ; le avisamos al pic
     popad
     iret
@@ -147,19 +149,15 @@ _isr33:
 global _isr88
 ; COMPLETAR: Implementar la rutina
 _isr88:
-    pushad
     mov eax, 0x0058
     ; como se trata de una syscall no interviene el pic
-    popad
     iret
 
 global _isr98
 ; COMPLETAR: Implementar la rutina
 _isr98:
-    pushad
     mov eax, 0x0062
     ; como se trata de una syscall no interviene el pic
-    popad
     iret
 
 ; PushAD Order

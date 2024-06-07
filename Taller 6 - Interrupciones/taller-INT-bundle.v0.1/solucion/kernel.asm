@@ -133,8 +133,10 @@ modo_protegido:
     
     sti                     ; habilita interruciones
 
-    ; la pregunta es : que pasa con las syscalls?
-    ; por que el teclado funciona una sola vez?
+    bpoint88:
+    int 88
+    bpoint98:
+    int 98
 
     ; Ciclar infinitamente 
     mov eax, 0xFFFF
