@@ -54,6 +54,12 @@ void mmu_init(void) {}
  * @return devuelve la dirección de memoria de comienzo de la próxima página libre de kernel
  */
 paddr_t mmu_next_free_kernel_page(void) {
+  // capturamos la actual
+  paddr_t next = next_free_kernel_page;
+  // actualizamos la siguiente libre
+  next_free_kernel_page += PAGE_SIZE;
+  // devolvemos la actual
+  return next;
 }
 
 /**
@@ -61,6 +67,12 @@ paddr_t mmu_next_free_kernel_page(void) {
  * @return devuelve la dirección de memoria de comienzo de la próxima página libre de usuarix
  */
 paddr_t mmu_next_free_user_page(void) {
+  // capturamos la actual
+  paddr_t next = next_free_user_page;
+  // actualizamos la siguiente libre
+  next_free_user_page += PAGE_SIZE;
+  // devolvemos la actual
+  return next;
 }
 
 /**
@@ -70,6 +82,21 @@ paddr_t mmu_next_free_user_page(void) {
  * de páginas usado por el kernel
  */
 paddr_t mmu_init_kernel_dir(void) {
+  // queremos inicializar una entrada de directorio
+  pd_entry_t inicial;
+  inicial.attrs = MMU_P | MMU_W ;     // como es Kernel el U / S es cero, esta present y es de lecto-escritura
+  inicial.pt = MMU_ENTRY_PADDR(kpt);  // necesitamos capturarle el puntero a la base de la tabla
+  kpd[0] = inicial;
+  // queremos incialiazar las entradas de la tabla de esa entrada de directorio
+  for (int i = 0; i < 1024; i++)
+  {
+    pt_entry_t nueva;
+    nueva.attrs = MMU_P | MMU_W;
+    nueva.page = i;
+    kpt[i] = nueva;
+  }
+
+  return KERNEL_PAGE_DIR;
 }
 
 /**

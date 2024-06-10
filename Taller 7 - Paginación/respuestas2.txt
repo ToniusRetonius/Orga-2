@@ -1,0 +1,5 @@
+Ejercicio - 7
+Tenemos que incializar la primer entrada del directorio con su respectiva tabla de 1024 entradas. Para ello tenemos que mirar la estructura de pd_entry_t y pt_entry_t del .h. Veremos que tienen un valor asociado al usuario, present (bit 0) que indica si la traduccion es valida y si se trata de lectura-escritura en el atributo : attrs. Para el caso del puntero, con las operaciones definidas en define.h podemos hacer uso de MMU_ENTRY_PADDR(kpt) y pasarle como parametro el puntero a la KERNEL_PAGE_TABLE_0. Para cada una de las entradas de la tabla definimos sus attrs y el puntero a la pagina que corresponda. En principio definimos la primera. 
+
+Ejercicio - 8
+Previo a activar interrupciones, tenemos que incializar el registro de control CR3 (es decir cargarle la direccion del page directory ) y activar el bit del registro de control CR0 (bit 31 PG debe estar seteado en 1). Recordar que todas las modificaciones de los registros de control se hace con la dinamica MOV EAX, CR0 .... .... MOV CR0, EAX.

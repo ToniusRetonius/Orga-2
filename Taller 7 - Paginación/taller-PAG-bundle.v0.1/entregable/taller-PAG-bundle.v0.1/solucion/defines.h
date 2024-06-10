@@ -86,23 +86,28 @@
 /* MMU */
 /* -------------------------------------------------------------------------- */
 /* Definan:
+Se tiene la direccion virtual, 32 bits. Esos se dividen en 3 partes :
+    - [11:0] offset (para hallar la dire fisica dentro de la 4KB Page)
+    - [21:12] indice en la tabla de paginas (Page Table)
+    - [31:22] indice en el directorio de paginas (Page Directory)
+
 VIRT_PAGE_OFFSET(X) devuelve el offset dentro de la página, donde X es una dirección virtual
 VIRT_PAGE_TABLE(X)  devuelve la page table entry correspondiente, donde X es una dirección virtual
 VIRT_PAGE_DIR(X)    devuelve el page directory entry, donde X es una dirección virtual
 CR3_TO_PAGE_DIR(X)  devuelve el page directory, donde X es el contenido del registro CR3
 MMU_ENTRY_PADDR(X)  devuelve la dirección física de la base de un page frame o de un page table, donde X es el campo de 20 bits en una PTE o PDE
 
-#define VIRT_PAGE_OFFSET(X) ??
-#define VIRT_PAGE_TABLE(X)  ??
-#define VIRT_PAGE_DIR(X)    ??
-#define CR3_TO_PAGE_DIR(X)  ??
-#define MMU_ENTRY_PADDR(X)  ??
-
 */
+#define VIRT_PAGE_OFFSET(X) ((X) & 0xFFF)
+#define VIRT_PAGE_TABLE(X)  (((X) >> 12) & 0x3FF)
+#define VIRT_PAGE_DIR(X)    ((X) >> 22)
+#define CR3_TO_PAGE_DIR(X)  ((X) & 0xFFFFF000)
+#define MMU_ENTRY_PADDR(X)  ((uintptr_t)(X) & 0xFFFFF000)
 
-#define MMU_P (1 << 0)
-#define MMU_W (1 << 1)
-#define MMU_U (1 << 2)
+
+#define MMU_P (1 << 0)  // siempre es 1 (indica traduccion valida)
+#define MMU_W (1 << 1)  // Read - Write
+#define MMU_U (1 << 2)  // usuario 
 
 #define PAGE_SIZE 4096
 

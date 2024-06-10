@@ -25,6 +25,10 @@ extern idt_init
 extern pic_reset
 extern pic_enable
 
+; traemos de mmu.c el puntero al directorio de pagina del kernel
+extern KERNEL_PAGE_DIR
+extern mmu_init_kernel_dir
+
 ; COMPLETAR - Definan correctamente estas constantes cuando las necesiten
 %define CS_RING_0_SEL 0x0008    ; dire code 0 en code segment de 16 bits
 %define DS_RING_0_SEL 0x0018    ; dire data 0 para todo registro de segmento de 16 bits
@@ -130,7 +134,20 @@ modo_protegido:
     ; Inicializamos los PICS
     call pic_reset          ; remapea
     call pic_enable         ; habilita los pics
+
+    ; antes de habilitar las interrupciones vamos a inicializar la paginacion
+    call mmu_init_kernel_dir
+
+    ; seteamos cr3
+    mov cr3, eax
     
+    ; seteamos cr0 el bit 31 para habilitar paginacion (PG)
+    mov eax, cr0
+    or eax, 0x80000000          
+    mov cr0, eax
+
+    bpointpaging:
+
     sti                     ; habilita interruciones
 
     bpoint88:

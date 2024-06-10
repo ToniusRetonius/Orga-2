@@ -52,3 +52,12 @@ página fı́sica). Un array de 1024 entradas. Cada entrada
 traduce los 4KB que le corresponden (dentro del bloque de
 4MB dónde la tabla fué referenciada).
 Con esto en mente, tenemos una pagina para el directorio, otra para la tabla y para la tarea tenemos 2 de codigo y una de pila. En total necesitamos 5 paginas
+
+Ejercicio 6 -
+El Translation Lookaside Buffer o TLB es un cache administrada por la MMU. La idea de esta cache es acelerar el proceso de traduccion. El proce tiene esta cache particular de entradas fijas que mira para ver si ya esta disponible la traduccion. En caso de un miss, hace todo el proceso visto anteriormente. Caso contrario, ya dispone de la traduccion.
+En la TLB cada entrada contiene :
+    - Page Frame (la direccion fisica correspondiente al numero de pagina)
+    - Derechos de acceso
+    - Atributos (Dirty o no , Memory Type)
+Necesitamos realizar el 'tlbflush' una rutina de invalidacion de la tlb cuando modificamos las estructuras de paginacion dado que podriamos seguir observando traducciones invalidas.
+Al desalojar una entrada determinada en la TLB no tiene imapcato sobre la tabla de paginacion, la idea de la TLB es que el proce pueda acceder mas rapido a su traduccion. Para el caso en que no disponga de mas entradas la cache y necesite quitar esa entrada, no afectaria en lo absoluto a su valor de la tabla.
