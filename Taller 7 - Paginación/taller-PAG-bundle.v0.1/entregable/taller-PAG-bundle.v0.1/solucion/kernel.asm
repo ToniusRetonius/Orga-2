@@ -138,7 +138,7 @@ modo_protegido:
     ; antes de habilitar las interrupciones vamos a inicializar la paginacion
     call mmu_init_kernel_dir
 
-    ; seteamos cr3
+    ; cargamos la dire del Page Directory en cr3
     mov cr3, eax
     
     ; seteamos cr0 el bit 31 para habilitar paginacion (PG)

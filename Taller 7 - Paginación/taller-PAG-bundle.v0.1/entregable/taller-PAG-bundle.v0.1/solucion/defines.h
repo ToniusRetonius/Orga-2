@@ -98,11 +98,11 @@ CR3_TO_PAGE_DIR(X)  devuelve el page directory, donde X es el contenido del regi
 MMU_ENTRY_PADDR(X)  devuelve la dirección física de la base de un page frame o de un page table, donde X es el campo de 20 bits en una PTE o PDE
 
 */
-#define VIRT_PAGE_OFFSET(X) ((X) & 0xFFF)
-#define VIRT_PAGE_TABLE(X)  (((X) >> 12) & 0x3FF)
-#define VIRT_PAGE_DIR(X)    ((X) >> 22)
-#define CR3_TO_PAGE_DIR(X)  ((X) & 0xFFFFF000)
-#define MMU_ENTRY_PADDR(X)  ((uintptr_t)(X) & 0xFFFFF000)
+#define VIRT_PAGE_OFFSET(X) ((X) & 0xFFF)         // nos quedamos con los 12 bits de offset del inicio de la pagina para tener la dire fisica
+#define VIRT_PAGE_TABLE(X)  (((X) >> 12) & 0x3FF) // nos quedamos con el offset de la Page Table que son los 10 bits del medio
+#define VIRT_PAGE_DIR(X)    ((X) >> 22)           // nos quedamos con los 10 bits del offset del Page Directory
+#define CR3_TO_PAGE_DIR(X)  ((X) & 0xFFFFF000)    // nos quedamos con 32 bits pero solo nos interesan los 20 valores altos (multiplo de 4kb)
+#define MMU_ENTRY_PADDR(X)  ((X) << 12)           // extendemos a 32 bits el valor contenido en una entrada del Page Directory o Table
 
 
 #define MMU_P (1 << 0)  // siempre es 1 (indica traduccion valida)

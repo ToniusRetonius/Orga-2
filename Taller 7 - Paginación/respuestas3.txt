@@ -1,0 +1,12 @@
+Ejercicio 9 -
+mmu_map_page debe agregar las entradas necesarias a las estructuras de paginación de modo de que la dirección virtual 'virt' se traduzca en la dirección física 'phy' con los atributos definidos en 'attrs'.
+Contamos con el contenido de cr3 (para apuntar al Page Directory), la direccion virtual (que tiene indice en el Directory, en la table y en la pagina de 4kb), la direccion de destino, y los atributos de la entrada de la Page Table. Todo esto para realizar apropiadamente el mapeo.
+
+La idea es crear una entrada en el directorio apuntado por el CR3 + dir si no existe. Si ya existe no la creamos.
+Esta entrada apunta a una page table (creada recien o ya existente).
+Luego en esta page table queremos modificar la entry correspondiente al indice virt.table de esta page table para que apunte a phy.
+Y finalmente flusheamos la tlb para que no guarde traducciones obsoletas.
+
+Ejercicio 10 - 
+Por que es necesario mapear y desmapear las paginas destino y fuente ? A nosotros nos pasan dos direcciones fisicas y nos dicen, copia una en otra. Como sabe el kernel 
+Necesitamos usar la funcion rcr3() porque no lo recibimos por parametro.

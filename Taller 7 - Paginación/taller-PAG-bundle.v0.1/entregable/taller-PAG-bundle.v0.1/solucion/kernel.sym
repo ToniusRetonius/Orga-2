@@ -33,7 +33,7 @@
 0x00001360 check_msg
 0x00004140 code2exception
 0x0000137e contadorlineas
-0x00002dde copy_page
+0x00002f1a copy_page
 0x000049a0 curr_column
 0x000049a4 curr_row
 0x00000017 disable_len
@@ -102,11 +102,11 @@
 0x0000249f kernel_exception
 0x00002d89 mmu_init
 0x00002dae mmu_init_kernel_dir
-0x00002ddf mmu_init_task_dir
-0x00002ddc mmu_map_page
+0x00002f1b mmu_init_task_dir
+0x00002e08 mmu_map_page
 0x00002d8a mmu_next_free_kernel_page
 0x00002d9c mmu_next_free_user_page
-0x00002ddd mmu_unmap_page
+0x00002eab mmu_unmap_page
 0x0000129a modo_protegido
 0x00002c98 move_down
 0x00002cc4 move_left
@@ -119,7 +119,7 @@
 0x000049a8 next_free_user_page
 0x00000003 ok_len
 0x00001377 ok_msg
-0x00002de0 page_fault_handler
+0x00002f1c page_fault_handler
 0x00002bb4 pic_disable
 0x00002ba5 pic_enable
 0x00002b56 pic_finish1

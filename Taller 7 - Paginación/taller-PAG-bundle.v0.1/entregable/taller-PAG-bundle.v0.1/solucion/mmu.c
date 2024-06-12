@@ -82,21 +82,25 @@ paddr_t mmu_next_free_user_page(void) {
  * de páginas usado por el kernel
  */
 paddr_t mmu_init_kernel_dir(void) {
+  // es buena practica limpiar la pagina y no reutilizar
+  zero_page(kpd);
+  zero_page(kpt);
+
   // queremos inicializar una entrada de directorio
   pd_entry_t inicial;
   inicial.attrs = MMU_P | MMU_W ;     // como es Kernel el U / S es cero, esta present y es de lecto-escritura
-  inicial.pt = MMU_ENTRY_PADDR(kpt);  // necesitamos capturarle el puntero a la base de la tabla
+  inicial.pt = ((uint32_t) kpt) >> 12;  // importante el uso del shift
   kpd[0] = inicial;
   // queremos incialiazar las entradas de la tabla de esa entrada de directorio
   for (int i = 0; i < 1024; i++)
   {
     pt_entry_t nueva;
     nueva.attrs = MMU_P | MMU_W;
-    nueva.page = i;
+    nueva.page =  i; 
     kpt[i] = nueva;
   }
 
-  return KERNEL_PAGE_DIR;
+  return (paddr_t) KERNEL_PAGE_DIR;
 }
 
 /**
@@ -108,6 +112,35 @@ paddr_t mmu_init_kernel_dir(void) {
  * @param attrs los atributos a asignar en la entrada de la tabla de páginas
  */
 void mmu_map_page(uint32_t cr3, vaddr_t virt, paddr_t phy, uint32_t attrs) {
+  // paso 1 : hallar la entrada en el Page Directory
+  pd_entry_t* base_directory = CR3_TO_PAGE_DIR(cr3);
+  uint32_t dir = VIRT_PAGE_DIR(virt);
+
+  // paso 2 : chequear si existe la entrada (mirar el bit 0 de present)
+  if ((base_directory[dir].attrs & 0x1) != 0x1)
+  {
+    // paso 3 : si no existe hay que crear la entrada
+    pd_entry_t nueva;
+    nueva.attrs = attrs | MMU_P ; // ahora esta presente por cuestiones restriccion 
+    nueva.pt = (mmu_next_free_kernel_page() >> 12); // le pasamos los 20 bits  que se ponen en el address de la tabla
+    base_directory[dir] = nueva;
+    // limpiamos la tabla
+    zero_page((paddr_t)(nueva.pt) << 12); // extendemos a 32 bits para que limpie una pagina a partir de este puntero de 32 y crear la tabla
+  }
+
+  // paso 4 : pararnos en la entrada adecuada de la Page Table
+  pt_entry_t* pt_puntero =  (pt_entry_t*)(base_directory[dir].pt  << 12);   // puntero a la tabla
+  uint32_t pt_offset = VIRT_PAGE_TABLE(virt);
+  
+  // paso 5 : crear la entrada de la Page Table
+  pt_entry_t nueva;
+  nueva.attrs = attrs | MMU_P;    // atributos mas restrictivos
+  nueva.page = (phy >> 12);      // pasamos de 32 bit a 20 bits
+  
+  pt_puntero[pt_offset] = nueva;
+
+  // paso 6 : tlbflush() para no guardar una traduccion invalida
+  tlbflush();
 }
 
 /**
@@ -116,7 +149,18 @@ void mmu_map_page(uint32_t cr3, vaddr_t virt, paddr_t phy, uint32_t attrs) {
  * @return la dirección física de la página desvinculada
  */
 paddr_t mmu_unmap_page(uint32_t cr3, vaddr_t virt) {
-
+  // puntero al directorio
+  pd_entry_t* directorio = CR3_TO_PAGE_DIR(cr3);
+  uint32_t offset_directorio = VIRT_PAGE_DIR(virt);
+  // puntero a la tabla
+  pt_entry_t* page_table = (directorio[offset_directorio].pt << 12);
+  uint32_t offset_page_table = VIRT_PAGE_TABLE(virt);
+  // bit present en 0 en la entrada de tabla
+  page_table[offset_page_table].attrs = 0x2;
+  // tlbflush
+  tlbflush();
+  // nos pide retornar la dirección física de la página desvinculada
+  return (paddr_t)(page_table[offset_page_table].page << 12);
 }
 
 #define DST_VIRT_PAGE 0xA00000
@@ -131,6 +175,20 @@ paddr_t mmu_unmap_page(uint32_t cr3, vaddr_t virt) {
  * la copia y luego desmapea las páginas. Usar la función rcr3 definida en i386.h para obtener el cr3 actual
  */
 void copy_page(paddr_t dst_addr, paddr_t src_addr) {
+  // mapeamos dst a DST_VIRT_PAGE
+  mmu_map_page(rcr3(), DST_VIRT_PAGE, dst_addr, MMU_P | MMU_W); // la queremos escribir
+  // mapeamos src a SRC_VIRT_PAGE
+  mmu_map_page(rcr3(), SRC_VIRT_PAGE, src_addr, MMU_P );
+
+  // copiamos byte a byte
+  for (int i = 0; i < PAGE_SIZE; i++)
+  {
+    /* code */
+  }
+  
+  // unmapping
+  mmu_unmap_page(rcr3(), DST_VIRT_PAGE);
+  mmu_unmap_page(rcr3(), SRC_VIRT_PAGE);
 }
 
  /**
