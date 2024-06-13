@@ -29,6 +29,10 @@ extern pic_enable
 extern KERNEL_PAGE_DIR
 extern mmu_init_kernel_dir
 
+; traemos de tss.c la llamada a init para agregar entradas de las tareas a la GDT
+extern tss_init
+
+
 ; COMPLETAR - Definan correctamente estas constantes cuando las necesiten
 %define CS_RING_0_SEL 0x0008    ; dire code 0 en code segment de 16 bits
 %define DS_RING_0_SEL 0x0018    ; dire data 0 para todo registro de segmento de 16 bits
@@ -146,9 +150,14 @@ modo_protegido:
     or eax, 0x80000000          
     mov cr0, eax
 
+    ; falta mmu_init_task_dir / page_fault_handler
+
     bpointpaging:
-     ; falta mmu_init_task_dir / page_fault_handler
-     ; como probamos las funciones?
+
+    call tss_init
+
+    bpointtss_init:
+
 
     sti                     ; habilita interruciones
 

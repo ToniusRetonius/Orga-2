@@ -1,0 +1,24 @@
+Ejercicio 1 -
+La estructura de una tarea esta definida por un segmento de estado de la tarea (TSS). Este es apuntado por un registro de tarea. Dentro de este TSS, de tama;o minimo 0x67 (103 bytes) se guardan muchos valores, pero dentro de los que nos interesan a nosotros: EIP, ESP, EBP, ESP0, selectores de segmento(CS,DS,ES,FS,GS,SS,SS0), CR3, EFLAGS (habilitando interrupciones) que todo esto representa el contexto de ejecucion de la tarea.
+
+Ejercicio 2 -
+Llamamos cambio de contexto o CONTEXT SWITCH a la transicion entre dos tareas, la que se esta ejecutando que pasa a suspenderse y la proxima a ejecutarse. Se produce cuando el Scheduler del SO decide que se le agota el tiempo disponible para ser ejecutada a la primera. Al ponerse la tarea en suspending, todo el contexto de ejecucion de la misma debe ser alamacenado en la TSS y luego debe hacer el movimiento del contexto de ejecucion de la proxima, es decir, cambiar el estado de los registros del proce de la saliente (con su apropiado resguardo de su contexto en la TSS) y de la proxima.
+El TASK REGISTER es un registro que indica al proce donde buscar la TSS de la tarea actual. Apunta al descriptor de la TSS por tanto tiene que buscar en la GDT para ver donde ese area de memoria que resguarda el contexto de ejecucion de la tarea actual. Durante el cambio de contexto, luego del resguardo del estado de la tarea que se queda sin tiempo, actualizara el valor del TR para indicar donde encontrar el estado de esa nueva tarea.
+
+Ejercicio 3 - 
+Para poder realizar el primer cambio de contexto tendriamos que ver si la tarea siguiente es una distinta de la que estamos ejecutando. Si no hay nada para hacer, podriamos no hacer nada y loopear un NOP.
+
+Ejercicio 4 -
+El Scheduler es un modulo de software que tiene el SO que trabaja con la lista de tareas a ejecutar. Define un TIME FRAME para cada tarea ( es decir, un intervalo de tiempo que la tarea puede hacer uso del proce, ya que en esta materia vemos el proce onda el 80386 que procesa una tarea a la vez). Cuando se dice la POLITICA que implementa el Scheduler se refiere a los Algoritmos de Scheduling que responden a ciertas variables : 
+    -  prioridad,
+    -  Preemption
+    -  Atomicidad de operaciones
+    -  concurrencia
+    -  limitaciones en tiempo (latency)
+    -  paralelismo (en caso de que el sistema cuente con mas de una CPU)
+
+Ejercicio 5 -
+La idea para enga;ar a nuestros sentidos y creer que varias tareas se estan ejecutando simultaneamente es que el scheduler puede hacer estas conmutaciones de una tarea a otra a gran velocidad (miles de context swiches por segundo) y no nos da para identificar esta intermitencia de cada tarea.
+
+Ejercicio 6 -
+tss_gdt_entry_for_task es un metodo que recibe como parametro el puntero al area de memoria qu guarda el contexto de ejecucion de una tarea y con el, retorna una entrada en la GDT.
