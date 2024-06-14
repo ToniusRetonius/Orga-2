@@ -28,7 +28,9 @@ extern pic_enable
 ; traemos de mmu.c el puntero al directorio de pagina del kernel
 extern KERNEL_PAGE_DIR
 extern mmu_init_kernel_dir
+extern mmu_init_task_dir
 
+extern copy_page
 ; COMPLETAR - Definan correctamente estas constantes cuando las necesiten
 %define CS_RING_0_SEL 0x0008    ; dire code 0 en code segment de 16 bits
 %define DS_RING_0_SEL 0x0018    ; dire data 0 para todo registro de segmento de 16 bits
@@ -147,8 +149,18 @@ modo_protegido:
     mov cr0, eax
 
     bpointpaging:
-     ; falta mmu_init_task_dir / page_fault_handler
-     ; como probamos las funciones?
+
+    push 0x00105000
+    push 0x00103000
+    mov byte [0x00105000], 0
+    mov byte [0x00103000], 0
+    call copy_page
+    add esp, 8
+
+    bpointcopypage:
+
+    
+
 
     sti                     ; habilita interruciones
 

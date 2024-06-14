@@ -31,7 +31,9 @@ extern mmu_init_kernel_dir
 
 ; traemos de tss.c la llamada a init para agregar entradas de las tareas a la GDT
 extern tss_init
+extern tss_initial
 
+%define GDT_SEL_TASK_INITIAL (11 << 3)
 
 ; COMPLETAR - Definan correctamente estas constantes cuando las necesiten
 %define CS_RING_0_SEL 0x0008    ; dire code 0 en code segment de 16 bits
@@ -155,7 +157,9 @@ modo_protegido:
     bpointpaging:
 
     call tss_init
-
+    mov ax, GDT_SEL_TASK_INITIAL
+    ltr ax
+    ; info tss
     bpointtss_init:
 
 

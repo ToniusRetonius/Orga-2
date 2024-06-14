@@ -74,7 +74,7 @@ tss_t tss_create_user_task(paddr_t code_start) {
   //COMPLETAR: a donde deberia apuntar la pila de nivel cero?
   vaddr_t esp0 = stack0 + ??;
 END*/
-  return (tss_t) {
+/*   return (tss_t) {
     .cr3 = cr3,
     .esp = stack,
     .ebp = stack,
@@ -89,6 +89,7 @@ END*/
     .esp0 = esp0,
     .eflags = EFLAGS_IF,
   };
+*/
 }
 
 /**

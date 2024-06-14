@@ -124,7 +124,7 @@ void mmu_map_page(uint32_t cr3, vaddr_t virt, paddr_t phy, uint32_t attrs) {
     nueva.attrs = attrs | MMU_P ; // ahora esta presente por cuestiones restriccion 
     nueva.pt = (mmu_next_free_kernel_page() >> 12); // le pasamos los 20 bits  que se ponen en el address de la tabla
     base_directory[dir] = nueva;
-    // limpiamos la tabla
+    // limpiamos la tabla ?
     zero_page((paddr_t)(nueva.pt) << 12); // extendemos a 32 bits para que limpie una pagina a partir de este puntero de 32 y crear la tabla
   }
 
@@ -188,8 +188,8 @@ void copy_page(paddr_t dst_addr, paddr_t src_addr) {
   }
   
   // unmapping
-  mmu_unmap_page(rcr3(), DST_VIRT_PAGE);
-  mmu_unmap_page(rcr3(), SRC_VIRT_PAGE);
+  // mmu_unmap_page(rcr3(), DST_VIRT_PAGE);
+  // mmu_unmap_page(rcr3(), SRC_VIRT_PAGE);
 }
 
  /**
@@ -197,8 +197,45 @@ void copy_page(paddr_t dst_addr, paddr_t src_addr) {
  * @pararm phy_start es la dirección donde comienzan las dos páginas de código de la tarea asociada a esta llamada
  * @return el contenido que se ha de cargar en un registro CR3 para la tarea asociada a esta llamada
  */
+
 paddr_t mmu_init_task_dir(paddr_t phy_start) {
-  
+  // la idea es construir el esquema de paginacion para una tarea que tenemos definida en memoria fisica (que son dos paginas)
+  // direccion virtual : 0x08 000 000
+  // 2 ^ 6 offset dir
+  // stack de lecto-escritura 0x08003000
+  // pagina compartida luego del stack
+  pd_entry_t* dir = mmu_next_free_kernel_page();
+  pt_entry_t* table = mmu_next_free_kernel_page();
+
+  // directory
+  pd_entry_t entrada_directorio;
+  entrada_directorio.attrs = MMU_P | MMU_W;
+  entrada_directorio.pt = ((uint32_t)table >> 12);
+  dir[VIRT_PAGE_DIR(0x08000000)] = entrada_directorio;
+
+  // tabla
+  pt_entry_t entrada_tabla_cod1;
+  entrada_tabla_cod1.attrs = MMU_P;
+  entrada_tabla_cod1.page = (VIRT_PAGE_TABLE(0x08000000));
+
+  pt_entry_t entrada_tabla_cod2;
+  entrada_tabla_cod2.attrs = MMU_P;
+  entrada_tabla_cod2.page = (VIRT_PAGE_TABLE(0x08000000 + PAGE_SIZE));
+
+  pt_entry_t entrada_tabla_pila;
+  entrada_tabla_pila.attrs = MMU_P | MMU_W;
+  entrada_tabla_pila.page = (VIRT_PAGE_TABLE(0x08000000 + (2 * PAGE_SIZE)));
+
+  pt_entry_t entrada_tabla_shared;
+  entrada_tabla_shared.attrs = MMU_P;
+  entrada_tabla_shared.page = (VIRT_PAGE_TABLE(0x08000000 + (3 * PAGE_SIZE)));
+
+  table[VIRT_PAGE_OFFSET(0x08000000)] = entrada_tabla_cod1;
+  table[VIRT_PAGE_OFFSET(0x08000000 + PAGE_SIZE)] = entrada_tabla_cod2;
+  table[VIRT_PAGE_OFFSET(0x08000000 + (2 * PAGE_SIZE))] = entrada_tabla_pila;
+  table[VIRT_PAGE_OFFSET(0x08000000 + (3 * PAGE_SIZE))] = entrada_tabla_shared;
+
+  return (paddr_t) dir;  
 }
 
 // COMPLETAR: devuelve true si se atendió el page fault y puede continuar la ejecución 
