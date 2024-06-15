@@ -218,7 +218,7 @@ paddr_t mmu_init_task_dir(paddr_t phy_start) {
   // mapeamos la pagina shared read-only nivel 3 
   // las direcciones de memoria compartida fisica van desde 0x30000000 en adelante
   // las direcciones de memoria compartida virtual van desde 0x07000000 a 0x07000FFF
-  mmu_map_page(dir, TASK_SHARED_PAGE, mmu_next_free_user_page(), MMU_U);
+  mmu_map_page(dir, TASK_SHARED_PAGE, 0x1D000, MMU_U); 
 
   return (paddr_t) dir;  
 }
@@ -230,7 +230,7 @@ bool page_fault_handler(vaddr_t virt) {
   // acceso dentro del area on-demand
   if (ON_DEMAND_MEM_START_VIRTUAL<=virt || virt<=ON_DEMAND_MEM_END_VIRTUAL) {
       // mapeamos la pagina
-      mmu_map_page(rcr3(), virt, ON_DEMAND_MEM_START_PHYSICAL, MMU_P | MMU_U | MMU_W);
+      mmu_map_page(rcr3(), virt, ON_DEMAND_MEM_START_PHYSICAL, MMU_U | MMU_W);
       return true;
   }
   return false;
