@@ -22,3 +22,7 @@ La idea para enga;ar a nuestros sentidos y creer que varias tareas se estan ejec
 
 Ejercicio 6 -
 tss_gdt_entry_for_task es un metodo que recibe como parametro el puntero al area de memoria qu guarda el contexto de ejecucion de una tarea y con el, retorna una entrada en la GDT.
+
+Ejercicio 9 -
+Tenemos que tener la pila de nivel 0 definida en la TSS en caso de tener un cambio de nivel de privilegio (ejemplo al atender una interrupcion). Frente a dicho cambio, debe tener una pila valida
+

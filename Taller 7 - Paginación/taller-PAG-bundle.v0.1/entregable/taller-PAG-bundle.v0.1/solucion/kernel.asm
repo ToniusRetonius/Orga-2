@@ -29,8 +29,8 @@ extern pic_enable
 extern KERNEL_PAGE_DIR
 extern mmu_init_kernel_dir
 extern mmu_init_task_dir
-
 extern copy_page
+
 ; COMPLETAR - Definan correctamente estas constantes cuando las necesiten
 %define CS_RING_0_SEL 0x0008    ; dire code 0 en code segment de 16 bits
 %define DS_RING_0_SEL 0x0018    ; dire data 0 para todo registro de segmento de 16 bits
@@ -134,8 +134,8 @@ modo_protegido:
     bpointIDT:
 
     ; Inicializamos los PICS
-    call pic_reset          ; remapea
-    call pic_enable         ; habilita los pics
+    call pic_reset                ; remapea
+    call pic_enable               ; habilita los pics
 
     ; antes de habilitar las interrupciones vamos a inicializar la paginacion
     call mmu_init_kernel_dir
@@ -147,23 +147,45 @@ modo_protegido:
     mov eax, cr0
     or eax, 0x80000000          
     mov cr0, eax
-
     bpointpaging:
 
-    push 0x00105000
-    push 0x00103000
-    mov byte [0x00105000], 0
-    mov byte [0x00103000], 0
+    ; prueba mmu_map_page
+    ; push 0x3                   ; attrs
+    ; push phy                   ; dire fisica
+    ; push virt                  ; dire virtual
+    ; mov eax, cr3               ; conservamos el del kernel
+    ; push cr3                   ; cr3
+    ; call mmu_map_page          ; void
+    ; add esp, 16                ; pusheamos 4 valores de 4 bytes 
+    bpointmappage:
+
+    ; pusheamos de derecha a izq los param en la pila
+    ; las direcciones estan dentro del area mapeada sino, page fault
+    ; la otra manera es asignar dentro de copy_page en mmu.c una variable 
+    ; src[0] = 8
+    ; desp del loop pedir  dst[0] y chequear que sea 8  
+    push 0x00108000             ; src 
+    push 0x00103000             ; dst
+    mov byte [0x00108000], 8    ; src
+    mov byte [0x00103000], 0    ; dst
     call copy_page
-    add esp, 8
-
+    add esp, 8                  ; alineamos la pila
     bpointcopypage:
-
     
+    ; prueba init_task_dir
+    mov eax, cr3            
+    push eax                    ; guardamos el cr3 del kernel
+    push 0x18000                ; pusheamos la supuesta phy_addr
+    call mmu_init_task_dir      ; retorna la dire del page directory (para cr3 de la tarea)
+    add esp, 4
+    pop eax
+    mov cr3, eax                ; reasignamos el cr3 del kernel
+    bpointinittask:
 
-
-    sti                     ; habilita interruciones
-
+    mov byte [0x07001000], 0xff ; escritura en alguna parte de la memoria compartida (deberia aparecer 'Atendiendo page fault')
+    mov byte [0x07002000], 0xff ; escritura 2 (sin page fault)
+    
+    sti                         ; habilita interruciones
     bpoint88:
     int 88
     bpoint98:

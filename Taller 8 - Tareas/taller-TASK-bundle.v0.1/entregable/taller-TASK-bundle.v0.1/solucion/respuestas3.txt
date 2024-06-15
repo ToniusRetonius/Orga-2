@@ -1,0 +1,13 @@
+Ejercicio 14 -
+Como parte de la inicialización del kernel, en kernel.asm se pide agregar una llamada a la función tasks_init de task.c que a su vez llama a create_task. Observe las siguientes líneas:
+    
+    int8_t task_id = sched_add_task(gdt_id << 3);
+    tss_tasks[task_id] = tss_create_user_task(task_code_start[tipo]);
+    gdt[gdt_id] = tss_gdt_entry_for_task(&tss_tasks[task_id]);
+
+a) ¿Qué está haciendo la función tss_gdt_entry_for_task?
+b) ¿Por qué motivo se realiza el desplazamiento a izquierda de gdt_id al pasarlo como parámetro de sched_add_task?
+
+La función tss_gdt_entry_for_task es una función definida en tss.c que recibe como parametro (tss_t* tss) un puntero a una TSS y retorna (gdt_entry_t) una entrada de GDT. En este caso toma la direccion fisica de la tss que fue capturada por la lineas anteriores en las que se busca en el arreglo de tareas si hay slot libre con sched_add_task. Esta recibe el selector de segmento de la tarea y retorna su identificador dentro del arreglo (indice). Una vez que tenemos un TASK_SLOT_FREE y podemos agregar la tarea a la lista de tareas, queremos crear una tss de usuario para asignarla en dicha posicion, eso podemos hacerlo con tss_create_user_task que toma una paddr_t y devuelve una tss_t. Finalmente, volviendo a tss_gdt_entry_for_task queremos la direccion fisica a la que apunta el selector que se encuentra en la posicion task_id de la lista de tareas tss_tasks. Para asignarle esta tss a la GDT en el id apropiado.
+Al principio vimos que sched_add_task necesita el selector de segmento de la tss. Si miramos la estructura de este, son 16 bits, pero el indice de la GDT solamente son 13, por ello nos movemos 3 a la derecha. 
+

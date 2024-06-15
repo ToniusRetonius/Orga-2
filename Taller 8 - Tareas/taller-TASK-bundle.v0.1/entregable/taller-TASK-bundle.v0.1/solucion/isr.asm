@@ -8,13 +8,25 @@
 %include "print.mac"
 %define CS_RING_0_SEL    (1 << 3)
 
+%define SHARED_TICK_COUNT 0x1D000
 BITS 32
+
+sched_task_offset:     dd 0xFFFFFFFF
+sched_task_selector:   dw 0xFFFF
 
 ;; PIC
 extern pic_finish1
-extern kernel_exception
 
-extern process_scancode
+;; Sched
+extern sched_next_task
+extern kernel_exception
+extern page_fault_handler
+
+;; Tasks
+extern tasks_tick
+extern tasks_screen_update
+extern tasks_syscall_draw
+extern tasks_input_process
 
 ;; Definición de MACROS
 ;; -------------------------------------------------------------------------- ;;
@@ -47,7 +59,8 @@ extern process_scancode
     push eax
     mov ax, ds
     push eax
-    push eax ; cs
+    mov ax, cs
+    push eax
 
     ; CREGS
     mov eax, cr4
@@ -62,7 +75,15 @@ extern process_scancode
     cmp edx, CS_RING_0_SEL
     je .ring0_exception
 
-    ;call ring3_exception
+    ; COMPLETAR (opcional):
+    ;   Si caemos acá es porque una tarea causó una excepción
+    ;   En lugar de frenar el sistema podríamos matar la tarea (o reiniciarla)
+    ;   ¿Cómo harían eso?
+    call kernel_exception
+    add esp, 10*4
+    popad
+
+    xchg bx, bx
     jmp $
 
 
@@ -109,7 +130,7 @@ ISRE 10
 ISRE 11
 ISRE 12
 ISRE 13
-ISRE 14
+
 ISRNE 15
 ISRNE 16
 ISRE 17
@@ -117,15 +138,51 @@ ISRNE 18
 ISRNE 19
 ISRNE 20
 
+;; Rutina de atención de Page Fault
+;; -------------------------------------------------------------------------- ;;
+global _isr14
+
+_isr14:
+	; Estamos en un page fault.
+	pushad
+    ; COMPLETAR: llamar rutina de atención de page fault, pasandole la dirección que se intentó acceder
+    .ring0_exception:
+	; Si llegamos hasta aca es que cometimos un page fault fuera del area compartida.
+    call kernel_exception
+    jmp $
+
+    .fin:
+	popad
+	add esp, 4 ; error code
+	iret
+
 ;; Rutina de atención del RELOJ
 ;; -------------------------------------------------------------------------- ;;
 global _isr32
 ; COMPLETAR: Implementar la rutina
 _isr32:
-    pushad              ; pushad se guarda todo (EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI)
-    call next_clock     ; lo que nos pide el ej
-    call pic_finish1    ; como se trata de una interrupcion externa hay que avisarle al PIC
-    popad               ; pop
+    pushad
+    ; 1. Le decimos al PIC que vamos a atender la interrupción
+    call pic_finish1
+    call next_clock
+    ; 2. Realizamos el cambio de tareas en caso de ser necesario
+    call sched_next_task
+    cmp ax, 0
+    je .fin
+
+    str bx
+    cmp ax, bx
+    je .fin
+
+    mov word [sched_task_selector], ax
+    jmp far [sched_task_offset]
+
+    .fin:
+    ; 3. Actualizamos las estructuras compartidas ante el tick del reloj
+    call tasks_tick
+    ; 4. Actualizamos la "interfaz" del sistema en pantalla
+    call tasks_screen_update
+    popad
     iret
 
 ;; Rutina de atención del TECLADO
@@ -134,11 +191,13 @@ global _isr33
 ; COMPLETAR: Implementar la rutina
 _isr33:
     pushad
-    in al, 0x60             ; le pasamos el puerto a al ()
+    ; 1. Le decimos al PIC que vamos a atender la interrupción
+    call pic_finish1
+    ; 2. Leemos la tecla desde el teclado y la procesamos
+    in al, 0x60
     push eax
-    call process_scancode   ; process_scancode(uint8_t scancode)
-    pop eax
-    call pic_finish1        ; le avisamos al pic
+    call tasks_input_process
+    add esp, 4
     popad
     iret
 
@@ -147,18 +206,19 @@ _isr33:
 ;; -------------------------------------------------------------------------- ;;
 
 global _isr88
-; COMPLETAR: Implementar la rutina
+; Syscall para que una tarea dibuje en su pantalla
 _isr88:
-    mov eax, 0x0058
-    ; como se trata de una syscall no interviene el pic
-    iret
+  pushad
+  push eax
+  call tasks_syscall_draw
+  add esp, 4
+  popad
+  iret
 
 global _isr98
-; COMPLETAR: Implementar la rutina
 _isr98:
-    mov eax, 0x0062
-    ; como se trata de una syscall no interviene el pic
-    iret
+  mov eax, 0x62
+  iret
 
 ; PushAD Order
 %define offset_EAX 28

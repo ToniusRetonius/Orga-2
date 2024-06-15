@@ -1,0 +1,42 @@
+Ejercicio 11 - 
+
+Estando definidas sched_task_offset y sched_task_selector:
+
+sched_task_offset: dd 0xFFFFFFFF
+sched_task_selector: dw 0xFFFF
+
+Y siendo la siguiente una implementación de una interrupción del reloj:
+global _isr32
+_
+isr32:
+    pushad
+    
+    call pic_finish1
+    call sched_next_task
+
+    str cx
+    cmp ax, cx
+    je .fin
+    mov word [sched_task_selector], ax
+    jmp far [sched_task_offset]
+    
+    .fin:
+    popad
+    iret
+
+a) Expliquen con sus palabras que se estaría ejecutando en cada tic del reloj línea por línea
+b) En la línea que dice jmp far [sched_task_offset] ¿De que tamaño es el dato que estaría
+leyendo desde la memoria? ¿Qué indica cada uno de estos valores? ¿Tiene algún efecto el
+offset elegido?
+c) ¿A dónde regresa la ejecución (eip) de una tarea cuando vuelve a ser puesta en ejecución?
+
+El pushad es una instruccion que pushea los contenidos de los registros de propósito general a la pila. Los registros se almacenan en la pila en el siguiente orden: EAX, ECX, EDX, EBX, ESP (valor original), EBP, ESI y EDI (si el atributo de tamaño del operando actual es 32).
+El call al pic_finish1 le avisa al pic que atendimos la interrupcion.
+El call a sched_next_task es una funcion del scheduler que retorna el valor del selector de segmento para la siguiente tarea a ejecutar. El tamaño es de 16 bits y por tanto se almacena en 'ax'.
+La instruccion str lee del registro TR su valor (es decir el selector de segmento de la tarea en ejecución) y lo guarda en 'cx'.
+La comparacion es para saber si la siguiente instruccion es la misma que la actual. ( en caso de serlo salta al final)
+(en caso de no ser iguales) : movemos el selector de segmento al lugar que ocupa sched_task_selector en memoria, luego hacemos el jmp far sched_task_offset. Esto se debe a que el cambio de tarea exige la lectura de 48 bits : 16 son del selector de segmento de la tarea proxima a ejecutarse, y los otros 32 son el offset en la tss. El tema es que el offset poco importa, eso es porque al cambiar de contexto, se cargan los registros con los valores de la nueva tarea (con su respectivo EIP) por ello, la tarea continuara en donde apunte su EIP. Es importante notar que va a leer los 48 bits que por endianess estan acomodados de forma falopa en memoria, pero funciona asi, qcyo.
+
+Ejercicio 12 -
+El metodo sched_next_task del scheduler hace uso de una variable int8_t current_task que funciona como indice del array static sched_entry_t sched_tasks[MAX_TASKS]. Esto es para buscar una tarea distinta de la que se esta ejecutando que este en estado TASK_RUNNABLE (se puede ejecutar), al dar con ella, se toma su indice para indexar en en el arreglo, esto se debe a que el for hace i++ y puede irse de rango. Para chequear si esa tarea esta TASK_RUNNABLE y en ese caso procede a actualizar el valor de current_task con ese indice y retorna el selector de segmento de la misma.
+La funcion tambien contempla el caso en que no haya ninguna tarea en estado TASK_RUNNABLE y en el peor de los casos, toma el selector de IDLE y devuelve eso.

@@ -11,10 +11,7 @@
 #include "kassert.h"
 #include "mmu.h"
 
-/*
- * TSS de la tarea inicial (sólo se usa para almacenar el estado del procesador
- * al hacer el salto a la tarea idle
- */
+/* TSS de la tarea inicial (sólo se usa para almacenar el estado del procesador al hacer el salto a la tarea idle */
 tss_t tss_initial = {0};
 // TSS de la tarea idle
 tss_t tss_idle = {
@@ -62,19 +59,18 @@ void tss_set(tss_t tss, int8_t task_id) {
  * Crea una tss con los valores por defecto y el eip code_start
  */
 tss_t tss_create_user_task(paddr_t code_start) {
-/*ENUNCIADO
   //COMPLETAR: es correcta esta llamada a mmu_init_task_dir?
   uint32_t cr3 = mmu_init_task_dir(code_start);
   //COMPLETAR: asignar valor inicial de la pila de la tarea
-  vaddr_t stack = ??;
+  vaddr_t stack = TASK_STACK_BASE;
   //COMPLETAR: dir. virtual de comienzo del codigo
-  vaddr_t code_virt = ??;
+  vaddr_t code_virt = TASK_CODE_VIRTUAL;
   //COMPLETAR: pedir pagina de kernel para la pila de nivel cero
-  vaddr_t stack0 = ??;
+  vaddr_t stack0 = mmu_next_free_kernel_page();
   //COMPLETAR: a donde deberia apuntar la pila de nivel cero?
-  vaddr_t esp0 = stack0 + ??;
-END*/
-/*   return (tss_t) {
+  // porq crece para direccones mas chicas
+  vaddr_t esp0 = stack0 + PAGE_SIZE;
+  return (tss_t) {
     .cr3 = cr3,
     .esp = stack,
     .ebp = stack,
@@ -89,14 +85,11 @@ END*/
     .esp0 = esp0,
     .eflags = EFLAGS_IF,
   };
-*/
 }
 
-/**
- * Inicializa las primeras entradas de tss (inicial y idle)
- */
+/* Inicializa las primeras entradas de tss (inicial y idle) */
 void tss_init(void) {
-  // COMPLETAR
-  gdt[GDT_IDX_TASK_IDLE] = tss_gdt_entry_for_task(&tss_idle);
+  // creamos la entradas en la GDT de los selectores TSS
   gdt[GDT_IDX_TASK_INITIAL] = tss_gdt_entry_for_task(&tss_initial);
+  gdt[GDT_IDX_TASK_IDLE] = tss_gdt_entry_for_task(&tss_idle);
 }
