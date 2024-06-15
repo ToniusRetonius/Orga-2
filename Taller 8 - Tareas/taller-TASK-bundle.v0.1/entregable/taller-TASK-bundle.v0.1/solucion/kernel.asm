@@ -216,8 +216,8 @@ modo_protegido:
     ltr ax
     bpointtss:
 
-    ; llamamos a tasks_init antes del jmp sino nunca se llama lo mismo con el reloj
-    call tasks_init
+    ; llamamos a tasks_init antes del jmp sino nunca se llama lo mismo con el reloj ( falla tira #DE )
+    ; call tasks_init
     
     ; El PIT (Programmable Interrupt Timer) corre a 1193182Hz.
     ; Cada iteracion del clock decrementa un contador interno, cuando éste llega
