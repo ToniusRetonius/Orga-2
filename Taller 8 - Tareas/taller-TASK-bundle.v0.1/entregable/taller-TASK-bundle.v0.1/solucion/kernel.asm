@@ -29,7 +29,6 @@ extern KERNEL_PAGE_DIR
 extern mmu_init_kernel_dir
 extern mmu_init_task_dir
 extern copy_page
-
 ; traemos de tss.c 
 extern tss_init
 ; preparamos la pantalla para las tareas
@@ -44,8 +43,8 @@ extern tasks_init
 
 ; definimos el selector de la tarea inicial
 ; recordar la estructura del selector de segmento : [15:3] indice , [2] Table Indicator, [1:0] RPL 
-%define GDT_SEL_TASK_INIT (11 << 3)
-%define GDT_SEL_TASK_IDLE (12 << 3)
+%define GDT_SEL_TASK_INIT 0x58
+%define GDT_SEL_TASK_IDLE 0x60
 
 BITS 16
 ;; Saltear seccion de datos
@@ -96,9 +95,8 @@ start:
     bpointGDT:
     ; COMPLETAR - Setear el bit PE del registro CR0 ( Protection Enable (PE) = 1) 
     ; detalle: solo tocamos ese bit, recordar que sino se ignora o #GP exception
-    xor eax, eax
     mov eax, cr0
-    or eax, 1
+    or eax, 0x1
     mov cr0, eax
 
     ; Saltar a modo protegido (far jump)
@@ -155,7 +153,7 @@ modo_protegido:
 
     ; vamos a inicializar la estructura de paginacion del kernel
     call mmu_init_kernel_dir
-
+    mov eax, 0x25000
     ; cargamos la dire del Page Directory en cr3
     mov cr3, eax
     
@@ -217,7 +215,7 @@ modo_protegido:
     bpointtss:
 
     ; llamamos a tasks_init antes del jmp sino nunca se llama lo mismo con el reloj ( falla tira #DE )
-    ; call tasks_init
+    call tasks_init
     
     ; El PIT (Programmable Interrupt Timer) corre a 1193182Hz.
     ; Cada iteracion del clock decrementa un contador interno, cuando éste llega

@@ -66,7 +66,7 @@ tss_t tss_create_user_task(paddr_t code_start) {
   //COMPLETAR: dir. virtual de comienzo del codigo
   vaddr_t code_virt = TASK_CODE_VIRTUAL;
   //COMPLETAR: pedir pagina de kernel para la pila de nivel cero
-  vaddr_t stack0 = mmu_next_free_kernel_page();
+  vaddr_t stack0 = (vaddr_t)mmu_next_free_kernel_page();
   //COMPLETAR: a donde deberia apuntar la pila de nivel cero?
   // porq crece para direccones mas chicas
   vaddr_t esp0 = stack0 + PAGE_SIZE;

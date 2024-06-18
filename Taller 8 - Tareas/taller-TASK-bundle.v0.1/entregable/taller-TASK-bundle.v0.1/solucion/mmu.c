@@ -87,17 +87,15 @@ paddr_t mmu_init_kernel_dir(void) {
   zero_page(kpt);
 
   // queremos inicializar una entrada de directorio
-  pd_entry_t inicial;
-  inicial.attrs = MMU_P | MMU_W ;     // como es Kernel el U / S es cero, esta present y es de lecto-escritura
-  inicial.pt = ((uint32_t) kpt) >> 12;  // importante el uso del shift
-  kpd[0] = inicial;
+  // como es Kernel el U / S es cero, esta present y es de lecto-escritura
+  kpd[0].attrs = MMU_P | MMU_W ;     
+  kpd[0].pt = VIRT_PAGE_TABLE((uint32_t)kpt);  
+
   // queremos incialiazar las entradas de la tabla de esa entrada de directorio
   for (int i = 0; i < 1024; i++)
   {
-    pt_entry_t nueva;
-    nueva.attrs = MMU_P | MMU_W;
-    nueva.page =  i; 
-    kpt[i] = nueva;
+    kpt[i].attrs = MMU_P | MMU_W;
+    kpt[i].page =  i; // como es identity mapping coincide el numero de pagina ;)
   }
 
   return (paddr_t) KERNEL_PAGE_DIR;
@@ -113,28 +111,24 @@ paddr_t mmu_init_kernel_dir(void) {
  */
 void mmu_map_page(uint32_t cr3, vaddr_t virt, paddr_t phy, uint32_t attrs) {
   // paso 1 : hallar la entrada en el Page Directory
-  pd_entry_t* base_directory = CR3_TO_PAGE_DIR(cr3);
+  pd_entry_t* base_directory = (pd_entry_t*)CR3_TO_PAGE_DIR(cr3);
   uint32_t dir = VIRT_PAGE_DIR(virt);
 
   // paso 2 : chequear si existe la entrada (mirar el bit 0 de present)
-  if ((base_directory[dir].attrs & 0x1) != 0x1)
+  if ((base_directory[dir].attrs & MMU_P) != 0x1)
   {
     // paso 3 : si no existe hay que crear la entrada
-    pd_entry_t nueva;
-    nueva.attrs = attrs | MMU_P ; // ahora esta presente por cuestiones restriccion 
-    nueva.pt = (mmu_next_free_kernel_page() >> 12); // le pasamos los 20 bits  que se ponen en el address de la tabla
-    base_directory[dir] = nueva;
-    // limpiamos la tabla ?
-    zero_page((paddr_t)(nueva.pt) << 12); // extendemos a 32 bits para que limpie una pagina a partir de este puntero de 32 y crear la tabla
+    base_directory[dir].pt = (mmu_next_free_kernel_page() >> 12); // de 20 bits
   }
+  base_directory[dir].attrs = base_directory[dir].attrs | attrs;
 
   // paso 4 : pararnos en la entrada adecuada de la Page Table
-  pt_entry_t* pt_puntero =  (pt_entry_t*)(base_directory[dir].pt  << 12);   // puntero a la tabla
+  pt_entry_t* pt_puntero =  (pt_entry_t*)((uint32_t)(base_directory[dir].pt  << 12)); 
   uint32_t pt_offset = VIRT_PAGE_TABLE(virt);
   
   // paso 5 : crear la entrada de la Page Table
   pt_entry_t nueva;
-  nueva.attrs = attrs | MMU_P;    // atributos mas restrictivos
+  nueva.attrs = attrs;    
   nueva.page = (phy >> 12);      // pasamos de 32 bit a 20 bits
   
   pt_puntero[pt_offset] = nueva;
@@ -149,16 +143,16 @@ void mmu_map_page(uint32_t cr3, vaddr_t virt, paddr_t phy, uint32_t attrs) {
  * @return la dirección física de la página desvinculada
  */
 paddr_t mmu_unmap_page(uint32_t cr3, vaddr_t virt) {
+  // tlbflush
+  tlbflush();
   // puntero al directorio
   pd_entry_t* directorio = CR3_TO_PAGE_DIR(cr3);
   uint32_t offset_directorio = VIRT_PAGE_DIR(virt);
   // puntero a la tabla
-  pt_entry_t* page_table = (directorio[offset_directorio].pt << 12);
+  pt_entry_t* page_table = (pt_entry_t*)((uint32_t)(directorio[offset_directorio].pt << 12));
   uint32_t offset_page_table = VIRT_PAGE_TABLE(virt);
   // bit present en 0 en la entrada de tabla
-  page_table[offset_page_table].attrs = 0x2;
-  // tlbflush
-  tlbflush();
+  page_table[offset_page_table].attrs = 0;
   // nos pide retornar la dirección física de la página desvinculada
   return (paddr_t)(page_table[offset_page_table].page << 12);
 }
@@ -200,25 +194,25 @@ void copy_page(paddr_t dst_addr, paddr_t src_addr) {
 
 paddr_t mmu_init_task_dir(paddr_t phy_start) {
   // necesitamos dos paginas para directorio y tabla
-  pd_entry_t* dir = mmu_next_free_kernel_page();
+  paddr_t dir = mmu_next_free_kernel_page();
   
   // identity mapping del kernel
   for (int32_t i=0; i < 1024; i++) {
-    mmu_map_page((uint32_t)dir, i*PAGE_SIZE, i*PAGE_SIZE, MMU_W);
+    mmu_map_page((uint32_t)dir, i*PAGE_SIZE, i*PAGE_SIZE, MMU_P | MMU_W);
   }
 
   // mapeamos las dos de codigo read-only user
-  mmu_map_page(dir , TASK_CODE_VIRTUAL, phy_start, MMU_U);
-  mmu_map_page(dir , TASK_CODE_VIRTUAL + PAGE_SIZE, phy_start + PAGE_SIZE, MMU_U);
+  mmu_map_page(dir , TASK_CODE_VIRTUAL, phy_start, MMU_P | MMU_U);
+  mmu_map_page(dir , TASK_CODE_VIRTUAL + PAGE_SIZE, phy_start + PAGE_SIZE,MMU_P | MMU_U);
 
   // mapeamos el stack con permisos de lecto-escritura 
   // la pagina fisica debe obtenerse del area libre de tareas
-  mmu_map_page(dir, 0x08002000, mmu_next_free_user_page(), MMU_U | MMU_W);
+  mmu_map_page(dir, 0x08002000, mmu_next_free_user_page(), MMU_P | MMU_U | MMU_W);
 
   // mapeamos la pagina shared read-only nivel 3 
   // las direcciones de memoria compartida fisica van desde 0x30000000 en adelante
   // las direcciones de memoria compartida virtual van desde 0x07000000 a 0x07000FFF
-  mmu_map_page(dir, TASK_SHARED_PAGE, 0x1D000, MMU_U); 
+  mmu_map_page(dir, TASK_SHARED_PAGE, 0x1D000, MMU_P | MMU_U); 
 
   return (paddr_t) dir;  
 }
@@ -230,7 +224,7 @@ bool page_fault_handler(vaddr_t virt) {
   // acceso dentro del area on-demand
   if (ON_DEMAND_MEM_START_VIRTUAL<=virt || virt<=ON_DEMAND_MEM_END_VIRTUAL) {
       // mapeamos la pagina
-      mmu_map_page(rcr3(), virt, ON_DEMAND_MEM_START_PHYSICAL, MMU_U | MMU_W);
+      mmu_map_page(rcr3(), virt, ON_DEMAND_MEM_START_PHYSICAL, MMU_P | MMU_U | MMU_W);
       return true;
   }
   return false;

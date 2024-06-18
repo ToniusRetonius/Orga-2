@@ -142,19 +142,23 @@ ISRNE 20
 ;; -------------------------------------------------------------------------- ;;
 global _isr14
 
-_isr14:
-	; Estamos en un page fault.
-	pushad
-    ; COMPLETAR: llamar rutina de atención de page fault, pasandole la dirección que se intentó acceder
-    .ring0_exception:
-	; Si llegamos hasta aca es que cometimos un page fault fuera del area compartida.
-    call kernel_exception
-    jmp $
-
-    .fin:
-	popad
-	add esp, 4 ; error code
-	iret
+global _isr14
+ _isr14:
+ 	 ; Estamos en un page fault.
+ 	 pushad
+     ; COMPLETAR: llamar rutina de atención de page fault, pasandole la dirección que se intentó acceder
+     mov eax, cr2
+     push eax
+     call page_fault_handler
+     add esp, 4
+     cmp al, 0 ; comparamos para ver si el acceso no fue en el area on demand y entonces no se pudo resolver el page fault
+     je imprimir
+     popad ; si fue en el area on demand vuelve tal como entro a la interrupcion
+     add esp, 4
+     iret
+     imprimir:
+     popad
+     ISRc 14
 
 ;; Rutina de atención del RELOJ
 ;; -------------------------------------------------------------------------- ;;
