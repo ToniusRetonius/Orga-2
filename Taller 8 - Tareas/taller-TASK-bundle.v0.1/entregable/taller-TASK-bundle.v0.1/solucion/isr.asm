@@ -143,22 +143,32 @@ ISRNE 20
 global _isr14
 
 global _isr14
- _isr14:
- 	 ; Estamos en un page fault.
- 	 pushad
-     ; COMPLETAR: llamar rutina de atención de page fault, pasandole la dirección que se intentó acceder
-     mov eax, cr2
-     push eax
-     call page_fault_handler
-     add esp, 4
-     cmp al, 0 ; comparamos para ver si el acceso no fue en el area on demand y entonces no se pudo resolver el page fault
-     je imprimir
-     popad ; si fue en el area on demand vuelve tal como entro a la interrupcion
-     add esp, 4
-     iret
-     imprimir:
-     popad
-     ISRc 14
+_isr14:
+ 	; Estamos en un page fault.
+ 	pushad
+  ; COMPLETAR: llamar rutina de atención de page fault, pasandole la dirección que se intentó acceder
+  ; The processor loads the CR2 register with the 32-bit linear address that generated the exception. 
+  ; The page-fault handler can use this address to locate the corresponding page directory and page-table entries.
+  mov eax, cr2
+  ; parametros por pila 
+  push eax
+  call page_fault_handler
+  ; alineamos a 4
+  add esp, 4
+
+  ; si el acceso, o lo que fuere fue por fuera de la region on_demand en al tenemos un 0 (false) del handler 
+  cmp al, 0 
+  je imprimir
+
+  ; si es en la region on_demand, en al tenemos 1 (true) del handler, mapea y continua
+  popad 
+  add esp, 4
+  iret
+
+  imprimir:
+  popad
+  ; definimos la macro ISRc que toma como param un numero, esta es la 14 
+  ISRc 14
 
 ;; Rutina de atención del RELOJ
 ;; -------------------------------------------------------------------------- ;;

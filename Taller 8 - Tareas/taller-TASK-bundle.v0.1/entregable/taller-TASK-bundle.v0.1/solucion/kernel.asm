@@ -153,7 +153,7 @@ modo_protegido:
 
     ; vamos a inicializar la estructura de paginacion del kernel
     call mmu_init_kernel_dir
-    mov eax, 0x25000
+    
     ; cargamos la dire del Page Directory en cr3
     mov cr3, eax
     
@@ -196,9 +196,10 @@ modo_protegido:
     mov cr3, eax                ; reasignamos el cr3 del kernel
     bpointinittask:
 
-    ; TESTEANDO PAGE FAULT (falla)
-    ;mov byte [0x07001000], 0xff ; escritura en alguna parte de la memoria compartida (deberia aparecer 'Atendiendo page fault')
-    ;mov byte [0x07002000], 0xff ; escritura 2 (deberia sin page fault)
+    ; TESTEANDO PAGE FAULT 
+    ; queremos escribir regiones 'NO MAPEADAS'
+    ; mov byte [0x07001000], 0xff ; escritura en alguna parte de la memoria compartida (aparece 'Atendiendo page fault')
+    ; mov byte [0x07002000], 0xff ; escritura 2 
 
     ; luego de habilitar paginacion agregamos las entradas de la GDT con los descriptores TSS de inicial e idle
     call tss_init
