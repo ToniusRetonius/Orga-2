@@ -10,6 +10,7 @@
 
 #include "i386.h"
 #include "kassert.h"
+#include "tss.h"
 
 /**
  * Estados posibles de una tarea en el scheduler:
