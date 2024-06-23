@@ -18,7 +18,7 @@ global alternate_sum_4_using_c
 
 ;########### DEFINICION DE FUNCIONES
 ; uint32_t alternate_sum_4(uint32_t x1, uint32_t x2, uint32_t x3, uint32_t x4);
-; registros: x1[?], x2[?], x3[?], x4[?]
+; registros: x1[rdi], x2[rsi], x3[rdx], x4[rcx]
 alternate_sum_4:
 	; prologo
 	push rbp 

@@ -17,7 +17,7 @@ void test_create_destroy_list(){
 *	crea y destruye un nodo
 */
 void test_create_destroy_node(){
-	string_proc_node* node	= string_proc_node_create_asm(0, "hash");
+	string_proc_node* node	= string_proc_node_create_asm(0,"hash");
 	string_proc_node_destroy(node);
 }
 

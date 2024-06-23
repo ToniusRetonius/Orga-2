@@ -1,56 +1,54 @@
 #include "ej1.h"
 
 string_proc_list* string_proc_list_create(void){
-	string_proc_list* res = malloc(2 * sizeof(uint64_t));
-	res->first = NULL;
-	res->last = NULL;
-	return res;
+	string_proc_list* lista = calloc(2, sizeof(string_proc_list));
+	return lista;
 }
 
 string_proc_node* string_proc_node_create(uint8_t type, char* hash){
 	string_proc_node* nuevo = malloc(sizeof(string_proc_node));
-	nuevo->next = NULL;
-	nuevo->previous = NULL;
 	nuevo->type = type;
 	nuevo->hash = hash;
+	// hace falta asignar previous y next ? 
+	nuevo->previous = NULL;
+	nuevo->next = NULL;
 	return nuevo;
 }
 
 void string_proc_list_add_node(string_proc_list* list, uint8_t type, char* hash){
 	string_proc_node* nuevo = string_proc_node_create(type, hash);
-
-	if (list->last != NULL)
+	if (list->first == NULL)
 	{
-		string_proc_node ultimo = list->last;
-		
-		ultimo->next = nuevo;
-		nuevo->previous = ultimo;
-
+		// si es vacia, primero y ultimo son el mismo?
+		list->first = nuevo;
 		list->last = nuevo;
+		// con esto basta pues el anterior y el sig son NULL
 	}
 	else
 	{
-		list->first = nuevo;
+		// capturamos el ultimo
+		string_proc_node* ultimo = list->last;
+		ultimo->next = nuevo;
+		// actualizamos el ultimo
 		list->last = nuevo;
+		nuevo->previous = ultimo;
 	}
-	
 }
 
 char* string_proc_list_concat(string_proc_list* list, uint8_t type , char* hash){
-	char* res;
-	res = hash;
+	// para todo nodo con mismo type tenemos que concatenar sus hashes con el hash dado
+	string_proc_node* actual = list->first;
 
-	string_proc_node actual = list->first;
-	
-	while (actual->next != NULL)
-	{
+	while (actual != NULL)
+	{	
 		if (actual->type == type)
 		{
-			res = str_concat(res,actual->hash);
+			hash = str_concat(hash, actual->hash);
 		}
+		// bucle no-infinito
 		actual = actual->next;
 	}
-	return res;
+	return hash;
 }
 
 

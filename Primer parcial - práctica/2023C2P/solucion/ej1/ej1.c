@@ -35,11 +35,70 @@ void listDelete(list_t* pList){
 }
 
 uint8_t contar_pagos_aprobados(list_t* pList, char* usuario){
+    // no esta claro el tema de aprobado : voy a asumir que es NULL si no paga y 1 (uno) si esta aprobado el pago
+    listElem_t* actual = pList->first;
+    uint8_t total = 0;
+
+    while (actual != NULL)
+    {
+        if (actual->data->pagador == usuario){
+            if (actual->data->aprobado != 0)
+            {
+                total++;
+            }
+        }
+        actual = actual->next;
+    }
+    return total;
 }
 
 uint8_t contar_pagos_rechazados(list_t* pList, char* usuario){
+    listElem_t* actual = pList->first;
+    uint8_t total = 0;
+    
+    while (actual != NULL)
+    {
+        if (actual->data->pagador == usuario){
+            if (actual->data->aprobado == 0)
+            {
+                total++;
+            }
+        }
+        actual = actual->next;
+    }
+    return total;
 }
 
 pagoSplitted_t* split_pagos_usuario(list_t* pList, char* usuario){
+    pagoSplitted_t* res = malloc(sizeof(pagoSplitted_t));
+    listElem_t* actual = pList->first;
+    
+    // con las fn anteriores llenamos los campos :
+    res->cant_aprobados = contar_pagos_aprobados(pList, usuario);
+    res->cant_rechazados = contar_pagos_rechazados(pList, usuario);
 
+    // necesitamos crear el array de punteros :
+    res->aprobados = calloc(res->cant_aprobados, sizeof(pago_t*));
+    res->rechazados = calloc(res->cant_rechazados, sizeof(pago_t*));
+
+    int8_t i_aprobados = 0;
+    int8_t i_rechazados = 0;
+
+    while (actual != NULL)
+    {
+        if (actual->data->pagador == usuario){
+            if (actual->data->aprobado == 0)
+            {
+                res->rechazados[i_rechazados] = actual->data;
+                i_rechazados++;
+            }
+            else
+            {
+                res->aprobados[i_aprobados] = actual->data;
+                i_aprobados++;
+            }
+        }
+        actual = actual->next;
+    }
+    return res;
 }
