@@ -59,23 +59,25 @@ contar_pagos_aprobados_asm:
     mov r15, [r12 + DATA]           ; actual->data
     mov rdi, [r15 + PAGADOR]        ; actual->data->pagador
     mov rsi, r13                    ; usuario
-    call strcmp
+    
+    call strcmp                     ; str = 0 => son iguales
     cmp rax, 0                      ; if (actual->data->pagador == usuario)
-    jne siguiente
+    jne siguiente        
 
-    xor rcx, rcx
+    xor rcx, rcx                    ; como sabemo si es aprobado?
     mov cl, byte[r15 + APROBADO]    ; actual->data->aprobado
     cmp cl, 0                       ; if (actual->data->aprobado != NULL)
     je siguiente
 
-    add r14, 1                      ; total++
+    add r14b, 1                      ; total++
 
     siguiente:
     mov r12, [r12 + NEXT]
     jmp ciclo
     
     fin:
-    mov rax, r14                    ; rax = total
+    xor rax, rax
+    mov al, r14b                    ; al  = total (uint8_t)
     pop r15
     pop r14
     pop r13
