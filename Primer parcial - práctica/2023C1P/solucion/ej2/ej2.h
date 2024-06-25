@@ -24,9 +24,7 @@ typedef struct bgra_t {
 //*******************************
 //Declaración de funciones de ej2
 //*******************************
-void miraQueCoincidencia( uint8_t *A, uint8_t *B, uint32_t N, 
-                          uint8_t *laCoincidencia );
-void miraQueCoincidencia_c( uint8_t *A, uint8_t *B, uint32_t N, 
-                          uint8_t *laCoincidencia );
+void miraQueCoincidencia( uint8_t *A, uint8_t *B, uint32_t N, uint8_t *laCoincidencia );
+void miraQueCoincidencia_c( uint8_t *A, uint8_t *B, uint32_t N, uint8_t *laCoincidencia );
 
 #endif
