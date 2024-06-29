@@ -340,7 +340,6 @@ texto_tamanio_total:
 	add rax, r15
 
 	jmp fin
-; ------------------- se rompe el tipo 1 ( mirar en gdb ) ---------
 	tipo_0:
 	xor rcx, rcx
 	mov rcx, [r12 + TEXTO_LITERAL_OFFSET_TAMANIO]
@@ -348,10 +347,11 @@ texto_tamanio_total:
 	mov rax, r15
 
 	fin: 
+; ------------------- el error estaba en la pila --------- mal el epilogo
 	pop r15
 	pop r14
-	pop r12
-	pop r13
+	pop r13 		; pop r12
+	pop r12 		 ;pop r13
 	pop rbp
 	ret
 
@@ -418,9 +418,10 @@ texto_chequear_tamanio:
 	jmp verdadero
 
 	final:
-	pop r12
-	pop r13
-	pop r14
-	pop r15
+; ------------------- el error estaba en la pila --------- mal el epilogo
+	pop r15			; pop r12
+	pop r14			; pop r13
+	pop r13 		; pop r14
+	pop r12 		 ;pop r15
 	pop rbp
 	ret

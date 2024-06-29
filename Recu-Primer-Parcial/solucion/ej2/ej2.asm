@@ -1,6 +1,5 @@
 section .data
 
-
 section .text
 
 ; Marca un ejercicio como aún no completado (esto hace que no corran sus tests)
@@ -48,14 +47,18 @@ ej2a:
 	push r12
 	push r13
 
-	xor rax, rax
-	mov eax, r8d
-	mul r9d
-	mov r10, rax				; r10 contiene la cantidad de iteraciones
-	shr r10, 2					; procesamos de a 4 pixeles
-; ----- mepa que falla la # iteraciones porque no termina de imprimir -------- 
+	; ------- cambie el mul porque me usaba volatiles y quedaba todo roto --
+	xor r12, r12							
+	xor r13, r13							
+	
+	mov r12d, r8d							
+	mov r13d, r9d							
+	
+	imul r12, r13
+	shr r12, 2					; procesamos de a 4 
+	; -------------------------------------------------------------
 	ciclo:
-	cmp r10, 0
+	cmp r12, 0
 	je fin
 	pmovzxbd xmm0, [rsi]		; pasamos de 4 pixeles de 1 byte cada uno a 4 pixeles de 4 bytes cada uno en xmm0
 
@@ -63,19 +66,21 @@ ej2a:
 
 	; extendemos con ceros porque a priori son positivos
 
-	cvtdq2ps xmm0, xmm0			; pasamos a single precision
+	;cvtdq2ps xmm0, xmm0			; pasamos a single precision (nos rompe todo esto)
 
 	pxor xmm1, xmm1
 	pxor xmm2, xmm2
 
-; ------------ chequear en gdb si se inserta bien scale y offset --------------
 	movdqu xmm1, xmm0
 	pinsrd xmm2, edx, 0			; insertamos en la primer dword del xmm2 scale
 
 	pshufd xmm2, xmm2, 0		; tenemos 4 dwords con el valor de scalar
-	mulps xmm1, xmm2			; xmm1 = |127| | pixel 4 * scalar | pixel 3 * scalar | pixel 2 * scalar | pixel 1 * scalar | |0|
 
-	cvtps2dq xmm1, xmm1			; volvemos a dword int
+	; usamos pmulld
+	pmulld xmm1, xmm2			; xmm1 = |127| | pixel 4 * scalar | pixel 3 * scalar | pixel 2 * scalar | pixel 1 * scalar | |0|
+
+	; falla cvtps2dq, pone todo en 0 ==> 
+	; cvtps2dq xmm1, xmm1			; volvemos a dword int 
 	pinsrd xmm2, ecx, 0			; insertamos en la primer dword del xmm2 ofsset
 	pshufd xmm2, xmm2, 0		; tenemos 4 dwords con el valor de offset
 
@@ -84,13 +89,15 @@ ej2a:
 	
 	movdqu [rdi], xmm1
 
-	add rdi, 4					; nos movemos 4 bytes en dst (creo que falla por aca)
-	dec r10						; restamos una iteracion
+	add rdi, 16					; nos movemos 4 bytes en dst (creo que falla por aca) de a 4 pixeles de 4 bytes
+	add rsi, 4
+	dec r12						; restamos una iteracion
 	jmp ciclo
 
 	fin:
-	pop r12
+	; mal el epilogo 
 	pop r13
+	pop r12
 	pop rbp
 	ret
 
@@ -135,15 +142,20 @@ ej2b:
 	push rbp
 	mov rbp, rsp
 
-	xor rax, rax
-	mov rax, [rbp + 16]			; me traigo height es de 32 bits ( traigo un dato enorme)
-; -------- capturo mal el valor de la pila --------- 
-	mul r9						; tenemos en rax height * width
-	shr rax, 2					; divimos x 4 pixeles que procesamos en simultaneo
+	push r12
+	push r13
 
+	; ------ cambio de nuevo el mul porq rompe todo ----- 
+	xor r12, r12
+	xor r13, r13
+
+	mov r12d, [rbp + 16]		; me traigo heigth
+	imul r12d, r9d				; height x width
+	shr r12, 2					; de a 4 procesamos
+	; ------------------------------------------------
 	cicle:
-	cmp rax,0
-	je fin
+	cmp r12,0
+	je final
 
 	movdqu xmm0, [rsi]			; traemos 4 pixeles de la imagen A 127 | pixel 4 | pixel 3 | pixel 2 | pixel 1| 0
 	movdqu xmm1, [rcx]			; traemos 4 pixeles de la imagen B 127 | pixel 4 | pixel 3 | pixel 2 | pixel 1| 0
@@ -159,8 +171,11 @@ ej2b:
 	movdqu xmm6, xmm1			; copia pixeles B
 
 	pand xmm5, xmm4				; xmm5 = los pixeles de A que van a DST
-
-	pandn xmm4, xmm4			; invertimos la mascara 
+	; ----------------------------------------------------- 
+	pcmpeqd xmm7, xmm7			; xmm7 = mascara todo en 1
+	pxor xmm4, xmm7				; xmm4 = inversa
+	; -----------------------------------------------------
+	;pandn xmm4, xmm4			; invertimos la mascara 
 
 	pand xmm6, xmm4				; xmm6 = capturamos los pixeles de B que van a DST
 
@@ -172,9 +187,11 @@ ej2b:
 	add rcx, 16					; pasamos a los proximos 16 bytes de imagen B
 	add rdx, 16					; proximas 4 profundidades de A 
 	add r8, 16					; proximas 4 profundidades de B
-	dec rax						; i-- 
+	dec r12						; i-- 
 	jmp cicle
 
 	final:
+	pop r13
+	pop r12
 	pop rbp
 	ret
