@@ -222,10 +222,10 @@ modo_protegido:
     ; Cada iteracion del clock decrementa un contador interno, cuando éste llega
     ; a cero se emite la interrupción. El valor inicial es 0x0 que indica 65536,
     ; es decir 18.206 Hz
-    ; mov ax, 200
-    ; out 0x40, al
-    ; rol ax, 8
-    ; out 0x40, al
+    mov ax, 200
+    out 0x40, al
+    rol ax, 8
+    out 0x40, al
     
     ; saltamos a la tarea IDLE : recordar que toma 48 bits: 16 bits de segmento y el offset de 32
     ; de todos modos ese offset no importa y ponemos 0 pues al restaurar el EIP continuara de donde dejo

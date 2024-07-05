@@ -54,16 +54,6 @@ align 16
 
 section .text
 
-;void temperature_asm(unsigned char *src,
-;       unsigned char *dst,
-;       int width,
-;       int height,
-;       int src_row_size,
-;       int dst_row_size)
-;
-; src[rdi], dst[rsi], width[rdx], height[rcx],
-;src_row_size[r8], dst_row_size[r9]
-
 temperature_asm:
 push rbp
 mov rbp, rsp
@@ -72,9 +62,9 @@ mov rax, rdx    ; colocamos rdx (ancho) en rax
 mul rcx         ; hacemos rax = rax*rcx(alto)
 mov rcx, rax    ; rcx = ancho*alto
 
-.ciclo:
+    ciclo:
     cmp rcx, 0  ; vamps a iterar cada pixel de a 2
-    jle .fin    ; cuando los hayamos visto todos, terminamos el ciclo
+    jle fin    ; cuando los hayamos visto todos, terminamos el ciclo
 
     ;levantamos 2 pixeles (solo vamos a usar 2, pixeles pasados a 64 bits cada uno)
     pmovzxbw xmm0, [rdi] 
@@ -206,9 +196,9 @@ mov rcx, rax    ; rcx = ancho*alto
 
     sub rcx, 2
 
-    jmp .ciclo
+    jmp ciclo
 
-.fin:
+fin:
 
 pop rbp
 ret
