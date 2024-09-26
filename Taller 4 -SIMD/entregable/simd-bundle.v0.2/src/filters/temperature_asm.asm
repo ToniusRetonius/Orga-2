@@ -202,3 +202,5 @@ fin:
 
 pop rbp
 ret
+
+; en /src ./build/simd temperature -i asm ./img/puente.bmp 

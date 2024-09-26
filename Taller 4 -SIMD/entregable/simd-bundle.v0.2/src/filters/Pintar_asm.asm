@@ -72,5 +72,5 @@ pintar_bordes:
 	ret
 
 ; para ejecutar
-; make en la carpeta donde estan todas las carpetas
+; make en la carpeta src
 ; ./build/simd Pintar -i asm ./img/puente.bmp
