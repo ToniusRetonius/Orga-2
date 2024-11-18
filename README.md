@@ -25,3 +25,6 @@ No hice muchos resúmenes y encima están en formato png porque los hice con Exc
 ## Temas del final
 - [Cache : Políticas de reemplazo/escritura y Protocolos de Coherencia](https://github.com/ToniusRetonius/Orga-2/blob/main/Final/MICRO-ARQUITECTURA%20CACHE.png)
 - [ILP (Paralelismo a Nivel de Instrucción) - Ejecución Fuera de Orden - Algoritmo de Tomasulo - ReOrder Buffer - Three Cores Engine](https://github.com/ToniusRetonius/Orga-2/blob/main/Final/MICRO-ARQUITECTURA%20ILP.png) 
+
+
+
